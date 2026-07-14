@@ -4,501 +4,239 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Jahan Kazimi</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #fafaf8;
-      --white: #ffffff;
-      --text: #1a1a1a;
-      --muted: #5c5c54;
-      --border: #e0e0d8;
-      --accent: #1a1a1a;
+      --bg: #0a0a0a;
+      --text: #ededed;
+      --body: #d4d4d4;
+      --muted: #a1a1a1;
+      --faint: #737373;
+      --border: #262626;
+      --underline: rgba(255, 255, 255, 0.3);
     }
+
+    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
-      color: var(--text);
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-weight: 400;
-      font-size: 1.0625rem;
+      color: var(--body);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 0.9375rem;
+      line-height: 1.7;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
 
-    a:focus-visible, button:focus-visible {
-      outline: 2px solid var(--text);
-      outline-offset: 3px;
-      border-radius: 2px;
-    }
+    a { color: var(--text); text-decoration: underline; text-decoration-color: var(--underline); text-underline-offset: 3px; transition: text-decoration-color 0.15s; }
+    a:hover { text-decoration-color: var(--text); }
+    a:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 2px; }
 
-    /* ── TOP NAV ── */
-    .topbar {
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      position: sticky; top: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.9rem 1rem;
-    }
-
-    .topbar a {
-      text-decoration: none;
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.1rem;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      padding: 0.35rem 1.2rem;
-      border: 1px solid transparent;
-      border-radius: 999px;
-      transition: all 0.2s;
-    }
-    .topbar a:hover { color: var(--text); }
-    .topbar a.active {
-      color: var(--text);
-      border-color: var(--border);
-    }
-
-    /* ── LAYOUT ── */
-    .page {
-      max-width: 900px;
-      margin: 2.5rem auto;
+    .wrap {
+      max-width: 42rem;
+      margin: 0 auto;
       padding: 0 1.5rem;
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 2rem;
-      align-items: start;
     }
 
-    /* ── SIDEBAR ── */
-    .sidebar {
-      background: var(--white);
-      border: 1px solid var(--border);
-      padding: 2rem 1.5rem;
-      text-align: center;
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2rem 0 1rem;
     }
+    header .name {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+    header nav { display: flex; gap: 1.25rem; }
+    header nav a {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    header nav a:hover { color: var(--text); }
 
-    .avatar-wrap {
+    /* ── SECTIONS ── */
+    section { margin: 3.5rem 0; }
+
+    h1, h2 {
+      color: var(--text);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
+    h2 { font-size: 1.25rem; margin: 2.5rem 0 1.25rem; }
+
+    p { margin-bottom: 1.1rem; }
+
+    /* About intro w/ avatar */
+    .intro { display: flex; gap: 2rem; align-items: flex-start; }
+    .intro-text { flex: 1; }
+    .avatar {
       width: 130px; height: 130px;
-      overflow: hidden;
-      margin: 0 auto 1.4rem;
-      background: var(--bg);
-      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: #171717;
       border: 1px solid var(--border);
-    }
-    .avatar-placeholder {
-      font-size: 3rem;
-      color: var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-weight: 600;
+      font-size: 2rem;
+      color: var(--faint);
       user-select: none;
     }
 
-    .sidebar h1 {
-      font-size: 1.7rem;
-      font-weight: 500;
-      letter-spacing: 0.01em;
-      margin-bottom: 0.6rem;
-    }
-
-    .sidebar .role {
-      font-size: 1rem;
-      font-style: italic;
-      color: var(--muted);
-      line-height: 1.65;
-      margin-bottom: 1.8rem;
-    }
-
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 0 0 1.5rem;
-    }
-
-    .links { display: flex; flex-direction: column; gap: 1rem; text-align: left; }
-
-    .link-item { display: flex; align-items: flex-start; gap: 0.7rem; }
-
-    .link-item .link-label {
-      font-size: 0.72rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      display: block;
-      margin-bottom: 0.15rem;
-      font-style: normal;
-      font-weight: 500;
-    }
-    .link-item .link-val {
-      font-size: 0.95rem;
-      color: var(--text);
-      font-style: italic;
-      overflow-wrap: anywhere;
-    }
-    .link-item a { color: var(--text); text-decoration: none; }
-    .link-item a:hover { text-decoration: underline; }
-
-    .icon {
-      width: 26px; height: 26px;
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      color: var(--muted);
-      font-size: 0.75rem;
-      margin-top: 2px;
-    }
-
-    /* ── MAIN PANEL ── */
-    .main-panel {
-      background: var(--white);
-      border: 1px solid var(--border);
-      padding: 2.2rem 2.5rem;
-    }
-
-    .section { display: none; }
-    .section.active { display: block; }
-
-    .section-title {
-      font-size: 2rem;
-      font-weight: 500;
-      letter-spacing: 0.01em;
-      margin-bottom: 0.75rem;
-    }
-
-    .underline {
-      height: 1px;
-      background: var(--border);
-      width: 100%;
-      margin-bottom: 1.8rem;
-    }
-
-    .section p {
-      font-size: 1.18rem;
-      line-height: 1.8;
-      color: #2e2e2a;
+    /* Dash lists (rauchg style) */
+    ul.dash { list-style: none; }
+    ul.dash li {
+      position: relative;
+      padding-left: 1.4rem;
       margin-bottom: 1rem;
-      font-weight: 400;
     }
-
-    /* Timeline */
-    .timeline-head {
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-      font-weight: 500;
-      margin: 2.4rem 0 1.4rem;
-    }
-    .timeline {
-      list-style: none;
-      position: relative;
-      padding-left: 1.6rem;
-      border-left: 1px solid var(--border);
-      margin-left: 0.4rem;
-    }
-    .timeline li {
-      position: relative;
-      padding-bottom: 1.7rem;
-    }
-    .timeline li:last-child { padding-bottom: 0.2rem; }
-    .timeline li::before {
-      content: "";
+    ul.dash li::before {
+      content: "–";
       position: absolute;
-      left: calc(-1.6rem - 5px);
-      top: 0.5rem;
-      width: 9px; height: 9px;
-      border-radius: 50%;
-      background: var(--white);
-      border: 1.5px solid var(--muted);
+      left: 0;
+      color: var(--faint);
     }
-    .timeline li.now::before {
-      background: var(--text);
-      border-color: var(--text);
+
+    ul.dash li strong {
+      color: var(--text);
+      font-weight: 600;
     }
-    .timeline .tl-date {
-      font-size: 0.72rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--muted);
-      font-weight: 500;
+
+    .meta {
       display: block;
-      margin-bottom: 0.2rem;
-    }
-    .timeline .tl-date .tl-kind {
-      font-weight: 400;
-      color: #8a8a80;
-    }
-    .timeline h3 {
-      font-size: 1.2rem;
-      font-weight: 500;
+      font-size: 0.8125rem;
+      color: var(--faint);
       margin-bottom: 0.15rem;
     }
-    .timeline .tl-org {
-      font-size: 1rem;
-      font-style: italic;
-      color: var(--muted);
+
+    .tags {
       display: block;
-      margin-bottom: 0.3rem;
+      font-size: 0.75rem;
+      color: var(--faint);
+      letter-spacing: 0.02em;
+      margin-top: 0.35rem;
     }
-    .timeline .tl-desc {
-      font-size: 1.02rem;
-      line-height: 1.7;
-      color: #3a3a34;
-      margin: 0;
-    }
-
-    /* Resume */
-    .resume-block { margin-bottom: 2rem; }
-    .resume-block h3 {
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 1rem;
-      font-weight: 500;
-      font-style: normal;
-    }
-    .resume-item {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      padding: 0.9rem 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .resume-item:last-child { border-bottom: none; }
-    .resume-item-left strong {
-      font-size: 1.1rem; font-weight: 500;
-      display: block; margin-bottom: 0.2rem;
-    }
-    .resume-item-left span { font-size: 0.98rem; color: var(--muted); font-style: italic; }
-    .resume-item-right { font-size: 0.9rem; color: var(--muted); white-space: nowrap; margin-left: 1rem; letter-spacing: 0.05em; }
-
-    /* Projects */
-    .project-card {
-      border: 1px solid var(--border);
-      padding: 1.3rem 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .project-card h3 { font-size: 1.35rem; font-weight: 500; margin-bottom: 0.4rem; }
-    .project-card p { font-size: 1.08rem; color: #3a3a34; line-height: 1.75; margin: 0; }
-    .project-card:hover { border-color: #b8b8ac; }
-    .project-tag {
-      display: inline-block;
-      font-size: 0.72rem;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-      border: 1px solid #cfcfc4;
-      color: var(--muted);
-      font-weight: 500;
-      padding: 0.22rem 0.6rem;
-      margin-top: 0.85rem;
-      margin-right: 0.35rem;
-    }
-
-    /* Contact */
-    .contact-item {
-      display: flex; align-items: center; gap: 1rem;
-      padding: 1.1rem 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.9rem;
-    }
-    .contact-item:last-child { border-bottom: none; }
-    .contact-icon {
-      width: 34px; height: 34px;
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--muted);
-      font-size: 0.85rem;
-      flex-shrink: 0;
-    }
-    .contact-item strong { display: block; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500; color: var(--muted); margin-bottom: 0.15rem; }
-    .contact-item span, .contact-item a { color: var(--text); font-size: 1.02rem; font-style: italic; text-decoration: none; }
-    .contact-item a:hover { text-decoration: underline; }
 
     /* Footer */
-    .page-footer {
-      max-width: 900px;
-      margin: 1.5rem auto 2.5rem;
-      padding: 0 1.5rem;
-      font-size: 0.85rem;
-      color: #77776e;
-      letter-spacing: 0.08em;
-      text-align: right;
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 4rem;
+      padding: 1.5rem 0 3rem;
+      font-size: 0.8125rem;
+      color: var(--faint);
     }
 
-    @media (max-width: 640px) {
-      .page { grid-template-columns: 1fr; }
-      .topbar a { font-size: 1rem; padding: 0.3rem 0.9rem; }
-      .main-panel { padding: 1.5rem; }
+    @media (max-width: 560px) {
+      .intro { flex-direction: column-reverse; }
+      .avatar { width: 100px; height: 100px; font-size: 1.5rem; }
+      header nav { gap: 0.9rem; }
     }
   </style>
 </head>
 <body>
 
-  <nav class="topbar" aria-label="Site sections">
-    <a href="#about" class="active" aria-current="page" onclick="show(event,'about',this)">About</a>
-    <a href="#resume" onclick="show(event,'resume',this)">Resume</a>
-    <a href="#projects" onclick="show(event,'projects',this)">Projects</a>
-    <a href="#contact" onclick="show(event,'contact',this)">Contact</a>
-  </nav>
+  <div class="wrap">
 
-  <div class="page">
+    <header>
+      <a class="name" href="#">Jahan Kazimi</a>
+      <nav aria-label="Site sections">
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#resume">Resume</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </header>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="avatar-wrap">
-        <span class="avatar-placeholder" aria-hidden="true">◻</span>
-      </div>
-      <h1>Jahan Kazimi</h1>
-      <p class="role">Statistics & Data Science<br/>University of California,<br/>Los Angeles</p>
-      <hr class="divider"/>
-      <div class="links">
-        <div class="link-item">
-          <div class="icon" aria-hidden="true">✉</div>
-          <div>
-            <span class="link-label">Email</span>
-            <span class="link-val"><a href="mailto:jahankazimi078@ucla.edu">jahankazimi078@ucla.edu</a></span>
+    <main>
+
+      <section id="about">
+        <h1>About</h1>
+        <div class="intro">
+          <div class="intro-text">
+            <p>Hi, I'm Jahan — a Statistics &amp; Data Science student at the University of California, Los Angeles. I'm passionate about learning, building, and making an impact.</p>
           </div>
+          <div class="avatar" aria-hidden="true">JK</div>
         </div>
-        <div class="link-item">
-          <div class="icon" aria-hidden="true">in</div>
-          <div>
-            <span class="link-label">LinkedIn</span>
-            <span class="link-val"><a href="https://www.linkedin.com/in/jahan-kazimi/" target="_blank">jahan-kazimi</a></span>
-          </div>
-        </div>
-        <div class="link-item">
-          <div class="icon" aria-hidden="true">gh</div>
-          <div>
-            <span class="link-label">GitHub</span>
-            <span class="link-val"><a href="https://github.com/jahankazimi078" target="_blank">jahankazimi078</a></span>
-          </div>
-        </div>
-      </div>
-    </aside>
 
-    <!-- MAIN PANEL -->
-    <main class="main-panel">
-
-      <div class="section active" id="about">
-        <h2 class="section-title">About Me</h2>
-        <div class="underline"></div>
-        <p>Hi, I'm Jahan — a Statistics & Data Science student at the University of California, Los Angeles. I'm passionate about learning, building, and making an impact.</p>
-
-        <h3 class="timeline-head">Experience &amp; Education</h3>
-        <ol class="timeline">
+        <h2>Experience</h2>
+        <ul class="dash">
           <li>
-            <span class="tl-date">Jan 2026 – Apr 2026 &nbsp;·&nbsp; <span class="tl-kind">Experience</span></span>
-            <h3>Data Science &amp; Machine Learning Intern</h3>
-            <span class="tl-org">TVLIP</span>
-            <p class="tl-desc">Built and evaluated predictive models (LightGBM, logistic regression, gradient boosting) in Python on 1.2M+ records, running 240+ cross-validated experiments to raise macro F1 from 0.71 to 0.86, with error and segment-level analysis and SQL-based analytics reporting for technical and non-technical stakeholders.</p>
-          </li>
-          <li class="now">
-            <span class="tl-date">2025 – Expected Spring 2027 &nbsp;·&nbsp; <span class="tl-kind">Education</span></span>
-            <h3>B.S., Statistics &amp; Data Science</h3>
-            <span class="tl-org">University of California, Los Angeles</span>
-            <p class="tl-desc">GPA 3.86/4.0. Coursework in probability, mathematical statistics, statistical programming, and linear regression.</p>
+            <span class="meta">Jan 2026 – Apr 2026</span>
+            <strong>Data Science &amp; Machine Learning Intern</strong>, TVLIP — built and evaluated predictive models (LightGBM, logistic regression, gradient boosting) in Python on 1.2M+ records, running 240+ cross-validated experiments to raise macro F1 from 0.71 to 0.86, with error and segment-level analysis and SQL-based analytics reporting for technical and non-technical stakeholders.
           </li>
           <li>
-            <span class="tl-date">Jun 2025 – Sep 2025 &nbsp;·&nbsp; <span class="tl-kind">Experience</span></span>
-            <h3>Data Science &amp; Analytics Intern</h3>
-            <span class="tl-org">S&amp;F Services</span>
-            <p class="tl-desc">Built end-to-end Python and SQL data pipelines structuring 500K+ records, trained and evaluated multiclass classifiers (LightGBM, logistic regression), and translated statistical analysis into stakeholder-ready insights and dashboards.</p>
+            <span class="meta">Jun 2025 – Sep 2025</span>
+            <strong>Data Science &amp; Analytics Intern</strong>, S&amp;F Services — built end-to-end Python and SQL data pipelines structuring 500K+ records, trained and evaluated multiclass classifiers (LightGBM, logistic regression), and translated statistical analysis into stakeholder-ready insights and dashboards.
           </li>
           <li>
-            <span class="tl-date">Jan 2025 – Jun 2025 &nbsp;·&nbsp; <span class="tl-kind">Experience</span></span>
-            <h3>Mathematics &amp; Statistics Tutor</h3>
-            <span class="tl-org">LAPC Center for Academic Success</span>
-            <p class="tl-desc">Tutored Calculus I–III, Linear Algebra, and Statistics one-on-one and in small groups, and led exam-season workshops and study groups.</p>
+            <span class="meta">Jan 2025 – Jun 2025</span>
+            <strong>Mathematics &amp; Statistics Tutor</strong>, LAPC Center for Academic Success — tutored Calculus I–III, Linear Algebra, and Statistics one-on-one and in small groups, and led exam-season workshops and study groups.
+          </li>
+        </ul>
+
+        <h2>Education</h2>
+        <ul class="dash">
+          <li>
+            <span class="meta">2025 – Expected Spring 2027</span>
+            <strong>B.S., Statistics &amp; Data Science</strong>, University of California, Los Angeles — GPA 3.86/4.0. Coursework in probability, mathematical statistics, statistical programming, and linear regression.
           </li>
           <li>
-            <span class="tl-date">2024 – 2025 &nbsp;·&nbsp; <span class="tl-kind">Education</span></span>
-            <h3>Los Angeles Pierce College</h3>
-            <span class="tl-org">Dean's Honor List</span>
-            <p class="tl-desc">GPA 4.0/4.0. Coursework in linear algebra, Calculus I–III, statistics, and <span style="white-space:nowrap">C++</span>.</p>
+            <span class="meta">2024 – 2025</span>
+            <strong>Los Angeles Pierce College</strong> — Dean's Honor List, GPA 4.0/4.0. Coursework in linear algebra, Calculus I–III, statistics, and <span style="white-space:nowrap">C++</span>.
           </li>
-        </ol>
+        </ul>
+      </section>
 
-      </div>
+      <section id="projects">
+        <h2>Projects</h2>
+        <ul class="dash">
+          <li>
+            <strong><a href="https://jahankazimi078.github.io/311Analyzer/" target="_blank" rel="noopener">NYC 311 Analyzer</a></strong> — an end-to-end study of ~4.8 million New York City 311 service requests (2025–2026): cleaning, NLP enrichment, geospatial burden mapping, agency scorecards, a neighborhood equity audit, and resolution-time forecasting — presented as an interactive static site.
+            <span class="tags">Python · Pandas · Scikit-Learn · GeoPandas · NLP · Streamlit</span>
+          </li>
+          <li>
+            <strong><a href="https://jahankazimi078.github.io/nba-shot-quality/" target="_blank" rel="noopener">NBA Shot Quality</a></strong> — a shot-quality model estimating the expected points of every NBA field-goal attempt, turned into player-level shot-making skill (POE) with bootstrap confidence intervals, shot-diet archetypes, RAPM on/off impact, and a difference-in-differences study of mid-season coaching changes — all explorable in a browser dashboard.
+            <span class="tags">Python · LightGBM · Machine Learning · Causal Inference · Sports Analytics</span>
+          </li>
+          <li>
+            <strong>UCLA ASA DataFest 2026 — Team Lead</strong> — led a 4-person team analyzing 7.6M+ hospital encounters to quantify race-based disparities in chronic-disease patient journeys, anchored on a 25,668-patient Type 2 Diabetes cohort. Engineered a reproducible Python pipeline with bootstrap confidence intervals and logistic-regression mediation models, and built dashboards surfacing entry-point patterns and equity gaps.
+            <span class="tags">Python · Statistics · Health Equity · Dashboards</span>
+          </li>
+          <li>
+            <strong>More coming soon</strong> — currently working on new things; check back here soon.
+          </li>
+        </ul>
+      </section>
 
-      <div class="section" id="resume">
-        <h2 class="section-title">Resume</h2>
-        <div class="underline"></div>
-        <p><a href="Jahan_Kazimi_Resume.pdf" download="Jahan_Kazimi_Resume.pdf" style="color: var(--text); font-style: italic; text-decoration: underline; text-underline-offset: 3px;">↓ Download Resume</a></p>
-      </div>
+      <section id="resume">
+        <h2>Resume</h2>
+        <p><a href="Jahan_Kazimi_Resume.pdf" download="Jahan_Kazimi_Resume.pdf">↓ Download Resume</a></p>
+      </section>
 
-      <div class="section" id="projects">
-        <h2 class="section-title">Projects</h2>
-        <div class="underline"></div>
-        <a class="project-card" href="https://jahankazimi078.github.io/311Analyzer/" target="_blank" rel="noopener" style="display:block; text-decoration:none; color:inherit;">
-          <h3>NYC 311 Analyzer &nbsp;<span style="font-size:0.95rem; color:var(--muted); font-style:italic;">visit ↗</span></h3>
-          <p>An end-to-end study of ~4.8 million New York City 311 service requests (2025–2026): cleaning, NLP enrichment, geospatial burden mapping, agency scorecards, a neighborhood equity audit, and resolution-time forecasting — presented as an interactive static site.</p>
-          <span class="project-tag">Python</span><span class="project-tag">Pandas</span><span class="project-tag">Scikit-Learn</span><span class="project-tag">GeoPandas</span><span class="project-tag">NLP</span><span class="project-tag">Streamlit</span>
-        </a>
-        <a class="project-card" href="https://jahankazimi078.github.io/nba-shot-quality/" target="_blank" rel="noopener" style="display:block; text-decoration:none; color:inherit;">
-          <h3>NBA Shot Quality &nbsp;<span style="font-size:0.95rem; color:var(--muted); font-style:italic;">visit ↗</span></h3>
-          <p>A shot-quality model estimating the expected points of every NBA field-goal attempt, turned into player-level shot-making skill (POE) with bootstrap confidence intervals, shot-diet archetypes, RAPM on/off impact, and a difference-in-differences study of mid-season coaching changes — all explorable in a browser dashboard.</p>
-          <span class="project-tag">Python</span><span class="project-tag">LightGBM</span><span class="project-tag">Machine Learning</span><span class="project-tag">Causal Inference</span><span class="project-tag">Sports Analytics</span>
-        </a>
-        <div class="project-card">
-          <h3>UCLA ASA DataFest 2026 — Team Lead</h3>
-          <p>Led a 4-person team analyzing 7.6M+ hospital encounters to quantify race-based disparities in chronic-disease patient journeys, anchored on a 25,668-patient Type 2 Diabetes cohort. Engineered a reproducible Python pipeline with bootstrap confidence intervals and logistic-regression mediation models, and built dashboards surfacing entry-point patterns and equity gaps.</p>
-          <span class="project-tag">Python</span><span class="project-tag">Statistics</span><span class="project-tag">Health Equity</span><span class="project-tag">Dashboards</span>
-        </div>
-        <div class="project-card">
-          <h3>More coming soon</h3>
-          <p>Currently working on new things — check back here soon.</p>
-          <span class="project-tag">In Progress</span>
-        </div>
-      </div>
-
-      <div class="section" id="contact">
-        <h2 class="section-title">Contact</h2>
-        <div class="underline"></div>
-        <div class="contact-item">
-          <div class="contact-icon" aria-hidden="true">✉</div>
-          <div>
-            <strong>Email (UCLA)</strong>
-            <a href="mailto:jahankazimi078@ucla.edu">jahankazimi078@ucla.edu</a>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-icon" aria-hidden="true">✉</div>
-          <div>
-            <strong>Email (Personal)</strong>
-            <a href="mailto:jahankazimi078@gmail.com">jahankazimi078@gmail.com</a>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-icon" aria-hidden="true">in</div>
-          <div>
-            <strong>LinkedIn</strong>
-            <a href="https://www.linkedin.com/in/jahan-kazimi/" target="_blank">jahan-kazimi</a>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-icon" aria-hidden="true">gh</div>
-          <div>
-            <strong>GitHub</strong>
-            <a href="https://github.com/jahankazimi078" target="_blank">jahankazimi078</a>
-          </div>
-        </div>
-      </div>
+      <section id="contact">
+        <h2>Contact</h2>
+        <ul class="dash">
+          <li><strong>Email (UCLA)</strong> — <a href="mailto:jahankazimi078@ucla.edu">jahankazimi078@ucla.edu</a></li>
+          <li><strong>Email (Personal)</strong> — <a href="mailto:jahankazimi078@gmail.com">jahankazimi078@gmail.com</a></li>
+          <li><strong>LinkedIn</strong> — <a href="https://www.linkedin.com/in/jahan-kazimi/" target="_blank" rel="noopener">jahan-kazimi</a></li>
+          <li><strong>GitHub</strong> — <a href="https://github.com/jahankazimi078" target="_blank" rel="noopener">jahankazimi078</a></li>
+        </ul>
+      </section>
 
     </main>
+
+    <footer>© 2025 Jahan Kazimi</footer>
+
   </div>
-
-  <footer class="page-footer">© 2025 Jahan Kazimi</footer>
-
-  <script>
-    function show(ev, id, el) {
-      ev.preventDefault();
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.topbar a').forEach(a => { a.classList.remove('active'); a.removeAttribute('aria-current'); });
-      document.getElementById(id).classList.add('active');
-      el.classList.add('active');
-      el.setAttribute('aria-current', 'page');
-    }
-  </script>
 
 </body>
 </html>
