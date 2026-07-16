@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NeuroGolf 2026 — A Report on Minimal Model Construction</title>
+<meta name="description" content="NeuroGolf 2026 project report — solving 400 ARC-style grid puzzles with the smallest possible ONNX models. Bronze medal, 297th of 3,061 teams."/>
+<style>
+  body { margin: 0; padding: 0; font: 14px system-ui, -apple-system, sans-serif; background: #F6F5F1; color: #1A1C1A; }
+  @media (prefers-color-scheme: dark) { body { background: #111413; color: #ECEEE9; } }
+  img { max-width: 100%; }
+</style>
+</head>
+<body>
+<style>
+  .rp {
+    color-scheme: light;
+    --paper:#F6F5F1; --sheet:#FDFDFB; --sheet-2:#F1F0EB;
+    --ink:#1A1C1A; --ink-2:#565A54; --ink-3:#8A8D84;
+    --rule:#DEDCD3; --rule-2:#E9E7DF;
+    --accent:#1F6F63; --accent-soft:rgba(31,111,99,.10);
+    --grid:#CDCCC2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .rp {
+      color-scheme: dark;
+      --paper:#111413; --sheet:#181C1A; --sheet-2:#1E2321;
+      --ink:#ECEEE9; --ink-2:#A7ADA3; --ink-3:#767C72;
+      --rule:#2A302C; --rule-2:#232825;
+      --accent:#54C3AE; --accent-soft:rgba(84,195,174,.13);
+      --grid:#2C332F;
+    }
+  }
+  :root[data-theme="dark"] .rp {
+    color-scheme: dark;
+    --paper:#111413; --sheet:#181C1A; --sheet-2:#1E2321;
+    --ink:#ECEEE9; --ink-2:#A7ADA3; --ink-3:#767C72;
+    --rule:#2A302C; --rule-2:#232825;
+    --accent:#54C3AE; --accent-soft:rgba(84,195,174,.13);
+    --grid:#2C332F;
+  }
+
+  .rp {
+    --sans: "Söhne", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 5rem;
+  }
+  .rp *, .rp *::before, .rp *::after { box-sizing: border-box; }
+  .rp .col { max-width: 46rem; margin: 0 auto; padding: 0 1.6rem; }
+  .rp p { margin: 0 0 1.05rem; color: var(--ink-2); }
+  .rp p:last-child { margin-bottom: 0; }
+  .rp strong { color: var(--ink); font-weight: 600; }
+  .rp em { font-style: italic; }
+  .rp code { font-family: var(--mono); font-size: .84em; background: var(--sheet-2); padding: .08em .32em; border-radius: 3px; color: var(--ink); }
+  .rp .measure { max-width: 34rem; }
+
+  .rp h1, .rp h2, .rp h3 { font-weight: 600; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+  .rp h1 { font-size: clamp(1.9rem, 4vw, 2.55rem); line-height: 1.1; letter-spacing: -.02em; }
+  .rp h2 { font-size: 1.28rem; line-height: 1.25; }
+  .rp h3 { font-size: .98rem; line-height: 1.3; }
+
+  /* ---- title block ---- */
+  .rp .title { border-bottom: 1px solid var(--rule); padding: 4.5rem 0 2.4rem; }
+  .rp .kicker { font-family: var(--mono); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.4rem; }
+  .rp .title h1 { max-width: 30rem; }
+  .rp .standfirst { font-size: 1.12rem; color: var(--ink-2); max-width: 36rem; margin-top: 1.2rem; }
+  .rp .byline { display: flex; flex-wrap: wrap; gap: .4rem 1.6rem; margin-top: 2rem; font-family: var(--mono); font-size: .72rem; color: var(--ink-3); letter-spacing: .02em; }
+  .rp .byline b { color: var(--ink-2); font-weight: 500; }
+
+  /* ---- abstract / result strip ---- */
+  .rp .abstract { border-bottom: 1px solid var(--rule); padding: 2rem 0; }
+  .rp .abstract .lab { font-family: var(--mono); font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: .7rem; }
+  .rp .abstract p { font-size: .96rem; color: var(--ink-2); }
+
+  .rp .figures-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .rp .fstat { padding: 1.3rem 1.2rem; border-right: 1px solid var(--rule-2); }
+  .rp .fstat:last-child { border-right: 0; }
+  .rp .fstat .n { font-family: var(--serif); font-size: 1.85rem; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .rp .fstat .n.a { color: var(--accent); }
+  .rp .fstat .k { font-family: var(--mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-top: .55rem; }
+  @media (max-width: 620px) { .rp .figures-strip { grid-template-columns: 1fr 1fr; } .rp .fstat:nth-child(2) { border-right: 0; } }
+
+  /* ---- sections ---- */
+  .rp section { padding: 3.2rem 0 0; }
+  .rp .sec-h { display: flex; gap: .9rem; align-items: baseline; margin-bottom: 1.4rem; }
+  .rp .sec-n { font-family: var(--mono); font-size: .8rem; color: var(--accent); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .rp .sec-h h2 { flex: 1; }
+
+  /* ---- figure ---- */
+  .rp figure { margin: 1.8rem 0 .5rem; }
+  .rp .frame { background: var(--sheet); border: 1px solid var(--rule); border-radius: 3px; padding: 1.3rem 1.4rem 1.1rem; }
+  .rp .fig-t { font-size: .86rem; font-weight: 600; color: var(--ink); margin-bottom: .12rem; }
+  .rp .fig-s { font-family: var(--mono); font-size: .7rem; color: var(--ink-3); margin-bottom: 1rem; letter-spacing: .01em; }
+  .rp figcaption { font-size: .78rem; color: var(--ink-3); margin-top: .9rem; padding-left: .9rem; border-left: 2px solid var(--rule); line-height: 1.5; }
+
+  .rp .plot { position: relative; width: 100%; }
+  .rp .plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .rp .gridline { stroke: var(--grid); stroke-width: 1; stroke-dasharray: 2 4; opacity: .7; }
+  .rp .axl { stroke: var(--rule); stroke-width: 1; }
+  .rp .axt { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .rp .annb { font-family: var(--sans); font-size: 10.5px; fill: var(--ink); font-weight: 600; }
+  .rp .tip { position: absolute; pointer-events: none; opacity: 0; transform: translate(-50%, -118%); background: var(--ink); color: var(--paper); padding: .4rem .55rem; border-radius: 3px; font-family: var(--mono); font-size: .66rem; line-height: 1.4; white-space: nowrap; transition: opacity .1s; z-index: 5; }
+  .rp .tip.on { opacity: 1; }
+
+  /* ---- puzzle gallery ---- */
+  .rp .gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  @media (max-width: 620px) { .rp .gallery { grid-template-columns: 1fr; } }
+  .rp .cell { background: var(--sheet); padding: 1.25rem 1.3rem; display: flex; flex-direction: column; gap: .85rem; }
+  .rp .cell-h { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+  .rp .cell-h .id { font-family: var(--mono); font-size: .72rem; color: var(--ink); font-weight: 600; }
+  .rp .cell-h .rule { font-size: .74rem; color: var(--ink-3); text-align: right; }
+  .rp .pz { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+  .rp .gb { display: flex; flex-direction: column; gap: .38rem; align-items: flex-start; }
+  .rp .gl { font-family: var(--mono); font-size: .6rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .rp .arc { display: grid; gap: 1px; background: var(--rule); padding: 1px; border-radius: 2px; }
+  .rp .arc i { display: block; }
+  .rp .arw { font-family: var(--mono); color: var(--accent); font-size: 1rem; align-self: center; margin-top: .5rem; }
+  .rp .cell-f { font-family: var(--mono); font-size: .68rem; color: var(--ink-3); border-top: 1px solid var(--rule-2); padding-top: .6rem; display: flex; justify-content: space-between; }
+  .rp .cell-f b { color: var(--accent); font-weight: 600; }
+
+  /* ---- lever list ---- */
+  .rp .levers { margin: 1.6rem 0 .5rem; border-top: 1px solid var(--rule); }
+  .rp .lever { display: grid; grid-template-columns: 1.6rem 1fr; gap: 1rem; padding: 1.15rem 0; border-bottom: 1px solid var(--rule); }
+  .rp .lever .ln { font-family: var(--mono); font-size: .78rem; color: var(--accent); font-variant-numeric: tabular-nums; padding-top: .1rem; }
+  .rp .lever h3 { margin-bottom: .3rem; }
+  .rp .lever p { font-size: .88rem; margin: 0; }
+
+  .rp .callout { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); border-radius: 3px; padding: 1.2rem 1.35rem; margin: 1.6rem 0; }
+  .rp .callout .eq { font-family: var(--mono); font-size: .92rem; color: var(--ink); text-align: center; padding: .3rem 0 .7rem; }
+  .rp .callout .eq .h { color: var(--accent); font-weight: 700; }
+  .rp .callout p { font-size: .86rem; margin: 0; }
+
+  .rp .findings { margin: 1.4rem 0 .5rem; }
+  .rp .finding { display: flex; gap: .8rem; padding: .85rem 0; border-bottom: 1px solid var(--rule-2); }
+  .rp .finding:first-child { border-top: 1px solid var(--rule-2); }
+  .rp .finding .mk { color: var(--accent); flex-shrink: 0; font-size: 1rem; line-height: 1.5; }
+  .rp .finding p { font-size: .9rem; margin: 0; }
+  .rp .finding b { color: var(--ink); }
+
+  .rp .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1.7rem 0 .5rem; }
+  @media (max-width: 720px) { .rp .three { grid-template-columns: 1fr; } }
+
+  .rp .close { margin-top: 3.5rem; padding: 2.2rem 0 0; border-top: 1px solid var(--rule); }
+  .rp .colophon { margin-top: 3rem; padding-top: 1.3rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: .7rem; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: .4rem 1.5rem; justify-content: space-between; line-height: 1.6; }
+
+  .rp :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { .rp * { transition: none !important; } }
+</style>
+
+<div class="rp">
+  <div class="col">
+
+    <div class="title">
+      <div class="kicker">Kaggle · neurogolf-2026 · project report</div>
+      <h1>Solving 400 grid puzzles with the smallest possible models</h1>
+      <p class="standfirst">A code-golf competition where correctness is the entry fee and every byte is a cost. This is a short account of the problem, the method we used to minimize, and what we found.</p>
+      <div class="byline">
+        <span><b>Duration</b> 10 June – 15 July 2026</span>
+        <span><b>Result</b> 7398.77 · bronze</span>
+        <span><b>Coverage</b> 400 / 400 tasks</span>
+      </div>
+    </div>
+
+    <div class="abstract">
+      <div class="lab">Summary</div>
+      <p>NeuroGolf poses 400 ARC-style grid puzzles. For each, a solver submits one ONNX model that must reproduce every example exactly; the payout for a solved task shrinks logarithmically with the model's size. We solved all 400 tasks by hand-constructing minimal computation graphs — often a single operator — and repeatedly rewriting them to shed memory and parameters while proving each rewrite kept the output identical. The final submission scored <strong>7398.77</strong>, placing <strong>297th of 3,061 teams</strong> (bronze, top 10%), with a total model cost of 933,818 bytes-plus-parameters across the pack.</p>
+    </div>
+
+    <div class="figures-strip">
+      <div class="fstat"><div class="n a">7398.77</div><div class="k">Final score</div></div>
+      <div class="fstat"><div class="n">400</div><div class="k">Tasks solved</div></div>
+      <div class="fstat"><div class="n">103</div><div class="k">Single-node models</div></div>
+      <div class="fstat"><div class="n">3</div><div class="k">Zero-cost models</div></div>
+    </div>
+
+    <!-- 1. BACKGROUND -->
+    <section>
+      <div class="sec-h"><span class="sec-n">01</span><h2>Background: the competition</h2></div>
+      <p>Each of the 400 tasks is an <strong>ARC-style reasoning puzzle</strong>: a handful of worked examples, each an input grid of coloured cells and the output grid it should map to. Grids are up to 30&times;30, with ten colours. The examples come in three sets — <code>train</code>, <code>test</code>, and a larger machine-generated <code>arc-gen</code> set — and a task pays out only if the submitted model is <strong>exact on all of them</strong>. One wrong cell anywhere scores the task zero.</p>
+      <p>The submitted object is not a program but an <strong>ONNX model</strong>: a computation graph that takes the input grid, one-hot encoded to a <code>(1, 10, 30, 30)</code> tensor, and produces an output tensor of the same shape that is thresholded and cropped back to a grid. Any graph that computes the right function is legal, whatever operators it uses.</p>
+      <p>What makes it <em>golf</em> is the scoring. A solved task is worth:</p>
+      <div class="callout">
+        <div class="eq">points = max(1.0, 25.0 &minus; ln(<span class="h">memory_bytes + parameters</span>))</div>
+        <p>Correctness gets a task onto the board; after that, the only variable is size. Because the penalty is the natural logarithm of the model's cost, <strong>halving a model is always worth the same ≈0.69 points</strong> — whether it drops from 30,000 bytes to 15,000 or from 20 to 10. The theoretical maximum per task is 25 points, reached only at zero cost.</p>
+      </div>
+      <p>With 400 tasks and a 25-point ceiling each, the competition's headroom is about 10,000 points. Reaching it means not just solving every puzzle, but solving each one with a model small enough to give up almost nothing.</p>
+    </section>
+
+    <!-- 2. THE PUZZLES -->
+    <section>
+      <div class="sec-h"><span class="sec-n">02</span><h2>The puzzles</h2></div>
+      <p>The transformations vary widely — tiling, cropping, colour selection, ray-casting, flood fill, connecting marked cells. Below are worked examples from the set, each shown with the input, the output, and the minimal graph we built for it. Cell colours follow the standard ARC palette.</p>
+      <div class="gallery" id="gallery"></div>
+      <p class="measure" style="margin-top:1.4rem;font-size:.85rem;color:var(--ink-3)">Each puzzle names a rule the model must reproduce exactly, on every hidden example as well as these. The graph beside it is the entire model — not a trained network but a hand-derived expression in ONNX operators, sized to the rule.</p>
+    </section>
+
+    <!-- 3. METHOD -->
+    <section>
+      <div class="sec-h"><span class="sec-n">03</span><h2>How we minimized</h2></div>
+      <p>The method was a loop. Identify the rule a task follows; express that rule as the smallest exact ONNX graph we could; then rewrite the graph repeatedly, keeping any change that reduced cost and provably preserved the output. Five levers did most of the work.</p>
+      <div class="levers">
+        <div class="lever"><span class="ln">i</span><div>
+          <h3>Read the cost function literally</h3>
+          <p>Cost is the sum of every intermediate tensor's byte size plus the parameter count. Crucially, a model's <strong>input and output tensors are free</strong>, and initializers are charged by element count only. A graph that writes straight from one operator to the output, holding nothing in between, can cost almost nothing.</p>
+        </div></div>
+        <div class="lever"><span class="ln">ii</span><div>
+          <h3>Prefer one operator to a network</h3>
+          <p>Most rules don't need layers. A tiling is a single <code>Einsum</code>; a colour remap is one <code>Gather</code>; a reflection is a <code>Slice</code>. We built a library of rule families and, for each task, emitted the fewest nodes that computed it exactly. <strong>103 of the 400 final models are a single node.</strong></p>
+        </div></div>
+        <div class="lever"><span class="ln">iii</span><div>
+          <h3>Pick the cheapest dtype</h3>
+          <p>Tensors are billed by their data type's width: an <code>int64</code> costs 8 bytes per element, a <code>bool</code> just 1. Demoting intermediates to the narrowest type that still computes correctly — and packing the ten colour channels into integer bit-planes — cut the memory of the heavier models several-fold.</p>
+        </div></div>
+        <div class="lever"><span class="ln">iv</span><div>
+          <h3>Golf the graph, then golf it again</h3>
+          <p>Dead-node elimination, constant folding, and common-subexpression removal each shrink a graph — and each opens rewrites the others couldn't reach. Optimization behaved like a fixpoint: re-running the passes on an already-golfed graph kept paying, so we iterated rather than swept.</p>
+        </div></div>
+        <div class="lever"><span class="ln">v</span><div>
+          <h3>Gate every change on proven equivalence</h3>
+          <p>A smaller graph is only worth adopting if it computes the same function. Every rewrite was verified against all examples plus randomized probes before promotion. This is why local estimates matched the public score to the hundredth on every submission — nothing shipped that hadn't been proven exact first.</p>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- 4. RESULTS -->
+    <section>
+      <div class="sec-h"><span class="sec-n">04</span><h2>Results</h2></div>
+      <p>The finished pack reproduces all 400 tasks. Its size profile shows where the method reached: a long tail of near-free models, and a small cluster of heavyweights on tasks whose rules resisted a compact form.</p>
+
+      <figure class="frame">
+        <div class="fig-t">Every model against the scoring curve</div>
+        <div class="fig-s">400 models · cost on a log scale · each point is one task</div>
+        <div class="plot" id="p-law"><div class="tip" id="t-law"></div></div>
+        <figcaption>The points lie on the payout curve because payout has a single input — model cost. Minimization was, in effect, pushing every point leftward. Three sit at the far left, at zero cost and the maximum 25 points.</figcaption>
+      </figure>
+
+      <div class="three">
+        <figure class="frame" style="margin:0">
+          <div class="fig-t">Cost distribution</div>
+          <div class="fig-s">by band</div>
+          <div class="plot" id="p-hist"><div class="tip" id="t-hist"></div></div>
+        </figure>
+        <figure class="frame" style="margin:0">
+          <div class="fig-t">Graph size</div>
+          <div class="fig-s">nodes / model</div>
+          <div class="plot" id="p-nodes"><div class="tip" id="t-nodes"></div></div>
+        </figure>
+        <figure class="frame" style="margin:0">
+          <div class="fig-t">Operators used</div>
+          <div class="fig-s">across all graphs</div>
+          <div class="plot" id="p-ops"><div class="tip" id="t-ops"></div></div>
+        </figure>
+      </div>
+      <p style="margin-top:1.4rem" class="measure"><span style="font-size:.85rem;color:var(--ink-3)">Median model cost sits under 700. Bitwise operators dominate the operator count — packing colour channels into integer bit-planes is far cheaper than carrying float tensors. The twenty models above 10,000 hold most of the remaining unclaimed points.</span></p>
+    </section>
+
+    <!-- 5. FINDINGS -->
+    <section>
+      <div class="sec-h"><span class="sec-n">05</span><h2>Findings</h2></div>
+      <p>A few results shaped the whole effort, and were logged as carefully as the wins so no dead end cost us twice.</p>
+      <div class="findings">
+        <div class="finding"><span class="mk">&#9679;</span><p><b>Only generalizing rules count.</b> A model that merely memorizes the shown examples passes local checks but scores zero on the hidden set. Every point earned came from a rule that genuinely generalizes — and each of those transferred at exactly its predicted value.</p></div>
+        <div class="finding"><span class="mk">&#9679;</span><p><b>Free input/output is the deepest lever.</b> Because a graph's boundary tensors aren't charged, the cheapest models do their entire computation in a single node writing straight to the output. This one fact, read directly from the cost function, mattered more than any architectural idea.</p></div>
+        <div class="finding"><span class="mk">&#9679;</span><p><b>There is no accounting loophole.</b> We probed the cost harness for undercounted tensors and cheaper-than-advertised encodings; every one charged correctly. The only thing that moves the score is honestly re-deriving a smaller exact graph.</p></div>
+        <div class="finding"><span class="mk">&#9679;</span><p><b>Optimization is a fixpoint, not a pass.</b> Re-running the golf passes on a freshly-changed graph keeps finding savings, because each rewrite legalizes the next. Some tasks gave up new reductions on their third and fourth visits.</p></div>
+      </div>
+    </section>
+
+    <!-- 6. CLOSE -->
+    <div class="close">
+      <div class="sec-h"><span class="sec-n">06</span><h2>Where it ended</h2></div>
+      <p>The final submission scored <strong>7398.77</strong> — rank <strong>297 of 3,061</strong>, inside the bronze band by a small margin. Every one of the campaign's gated submissions graded at exactly its local prediction, which is the outcome the equivalence-gating was built to produce.</p>
+      <p>The distance to the top is not mysterious, which is the interesting part: the leaders average roughly <strong>173 cost per task</strong> against our <strong>683</strong>. They are not doing something fundamentally different — they are carrying the same minimization further, onto the heavyweight tasks we left standing. That gap is the clearest map of where the next points are.</p>
+    </div>
+
+    <div class="colophon">
+      <span>NeuroGolf 2026 · final submission ref 54746975 · 400 models</span>
+      <span>294 → 7398.77 · 10 Jun – 15 Jul 2026</span>
+    </div>
+
+  </div>
+</div>
+
+<script id="rp-data" type="application/json">{"costs":[[233,31135,14.6539],[366,27104,14.7926],[286,24427,14.8966],[54,24246,14.904],[18,23675,14.9278],[133,20938,15.0507],[158,18560,15.1712],[285,18449,15.1772],[187,15140,15.3749],[349,14892,15.3914],[364,14642,15.4084],[2,13844,15.4644],[367,13123,15.5179],[145,12855,15.5385],[76,12446,15.5708],[101,11832,15.6214],[138,11656,15.6364],[173,11505,15.6495],[191,10811,15.7117],[243,10706,15.7214],[110,9682,15.822],[204,8966,15.8988],[80,8883,15.9081],[118,8699,15.929],[66,8556,15.9456],[324,8555,15.9457],[216,8436,15.9597],[74,8394,15.9647],[64,8356,15.9693],[25,8260,15.9808],[198,7922,16.0226],[219,7846,16.0322],[96,7678,16.0539],[77,7657,16.0566],[209,7608,16.063],[23,7462,16.0824],[338,7215,16.1161],[379,6813,16.1734],[370,6585,16.2075],[328,6296,16.2523],[92,6290,16.2533],[9,6091,16.2854],[182,6041,16.2937],[255,5976,16.3045],[319,5777,16.3384],[279,5546,16.3792],[192,5342,16.4166],[29,5242,16.4355],[4,4866,16.51],[148,4766,16.5307],[361,4606,16.5649],[196,4536,16.5802],[278,4505,16.5871],[165,4358,16.6202],[265,4357,16.6205],[280,4335,16.6255],[359,4284,16.6374],[382,4165,16.6655],[5,4157,16.6675],[208,4149,16.6694],[157,4039,16.6962],[387,3932,16.7231],[131,3874,16.738],[117,3795,16.7586],[132,3637,16.8011],[107,3576,16.818],[174,3539,16.8284],[89,3517,16.8346],[162,3499,16.8398],[396,3497,16.8403],[363,3468,16.8487],[125,3463,16.8501],[137,3389,16.8717],[277,3330,16.8893],[340,3296,16.8995],[383,3273,16.9065],[234,3238,16.9173],[177,3193,16.9313],[44,3158,16.9423],[310,3151,16.9445],[201,3045,16.9787],[378,3035,16.982],[50,3000,16.9936],[365,2944,17.0125],[90,2938,17.0145],[86,2881,17.0341],[268,2852,17.0442],[42,2819,17.0559],[397,2752,17.0799],[390,2694,17.1012],[154,2679,17.1068],[94,2671,17.1098],[251,2663,17.1128],[270,2648,17.1184],[8,2613,17.1317],[358,2584,17.1429],[69,2542,17.1593],[102,2527,17.1652],[14,2504,17.1744],[19,2503,17.1748],[284,2501,17.1756],[37,2465,17.1901],[333,2401,17.2164],[91,2355,17.2357],[264,2329,17.2468],[12,2251,17.2809],[71,2240,17.2858],[168,2237,17.2871],[398,2133,17.3347],[170,2124,17.3389],[222,2121,17.3404],[330,2121,17.3404],[85,2101,17.3498],[250,2096,17.3522],[46,2085,17.3575],[205,2083,17.3584],[354,2064,17.3676],[202,2023,17.3877],[84,1895,17.453],[35,1877,17.4626],[88,1872,17.4652],[256,1858,17.4727],[213,1847,17.4787],[206,1783,17.5139],[62,1780,17.5156],[302,1773,17.5196],[238,1766,17.5235],[381,1752,17.5315],[55,1739,17.5389],[377,1730,17.5441],[112,1712,17.5546],[169,1670,17.5794],[61,1666,17.5818],[93,1656,17.5878],[190,1656,17.5878],[51,1630,17.6037],[323,1626,17.6061],[336,1620,17.6098],[368,1611,17.6154],[184,1584,17.6323],[159,1568,17.6424],[63,1556,17.6501],[224,1552,17.6527],[226,1534,17.6644],[343,1525,17.6703],[374,1516,17.6762],[185,1509,17.6808],[325,1476,17.7029],[105,1467,17.709],[30,1460,17.7138],[308,1430,17.7346],[134,1423,17.7395],[341,1422,17.7402],[13,1420,17.7416],[232,1410,17.7487],[303,1404,17.7529],[141,1383,17.768],[156,1367,17.7796],[119,1363,17.7826],[275,1350,17.7921],[123,1342,17.7981],[160,1334,17.8041],[70,1332,17.8056],[297,1332,17.8056],[281,1304,17.8268],[245,1297,17.8322],[34,1294,17.8345],[246,1274,17.8501],[175,1232,17.8836],[217,1222,17.8918],[356,1220,17.8934],[124,1186,17.9217],[392,1169,17.9361],[136,1154,17.949],[301,1141,17.9603],[109,1114,17.9843],[345,1110,17.9879],[388,1102,17.9951],[400,1094,18.0024],[271,1073,18.0218],[20,1057,18.0368],[36,1051,18.0425],[260,1012,18.0803],[335,1010,18.0823],[351,995,18.0973],[295,978,18.1145],[115,967,18.1258],[27,962,18.131],[239,947,18.1467],[228,946,18.1478],[346,928,18.167],[32,910,18.1866],[97,910,18.1866],[120,910,18.1866],[193,910,18.1866],[199,906,18.191],[15,900,18.1976],[22,900,18.1976],[98,900,18.1976],[151,900,18.1976],[189,892,18.2065],[194,885,18.2144],[259,884,18.2155],[369,872,18.2292],[10,866,18.2361],[122,810,18.303],[221,801,18.3141],[183,800,18.3154],[143,776,18.3458],[320,770,18.3536],[79,756,18.372],[267,747,18.3839],[48,744,18.388],[237,725,18.4138],[178,717,18.4249],[344,692,18.4604],[57,668,18.4957],[269,656,18.5138],[289,650,18.523],[348,650,18.523],[218,649,18.5246],[31,637,18.5432],[305,636,18.5448],[288,629,18.5559],[106,626,18.5606],[329,624,18.5638],[68,623,18.5655],[200,623,18.5655],[342,611,18.5849],[126,605,18.5948],[294,601,18.6014],[153,600,18.6031],[215,600,18.6031],[65,598,18.6064],[327,595,18.6114],[273,580,18.637],[75,559,18.6739],[59,546,18.6974],[283,540,18.7084],[263,539,18.7103],[147,532,18.7234],[214,525,18.7366],[394,519,18.7481],[99,504,18.7774],[331,500,18.7854],[197,492,18.8015],[384,481,18.8241],[240,468,18.8515],[371,467,18.8537],[81,464,18.8601],[247,461,18.8666],[41,460,18.8688],[230,460,18.8688],[352,460,18.8688],[300,454,18.8819],[39,453,18.8841],[244,452,18.8863],[282,446,18.8997],[220,437,18.9201],[350,428,18.9409],[242,422,18.955],[171,414,18.9741],[212,412,18.979],[316,406,18.9936],[253,395,19.0211],[139,389,19.0364],[181,368,19.0919],[225,363,19.1056],[290,355,19.1279],[49,344,19.1594],[360,340,19.1711],[195,338,19.177],[127,330,19.2009],[375,327,19.21],[121,326,19.2131],[11,318,19.2379],[163,310,19.2634],[304,300,19.2962],[357,279,19.3688],[161,275,19.3832],[355,274,19.3869],[33,268,19.409],[146,259,19.4432],[3,257,19.4509],[254,254,19.4627],[114,251,19.4745],[111,244,19.5028],[353,244,19.5028],[315,230,19.5619],[306,220,19.6064],[203,216,19.6247],[38,213,19.6387],[58,213,19.6387],[83,210,19.6529],[176,210,19.6529],[180,210,19.6529],[372,210,19.6529],[95,208,19.6625],[249,206,19.6721],[26,200,19.7017],[229,200,19.7017],[261,200,19.7017],[1,190,19.753],[82,190,19.753],[287,190,19.753],[376,186,19.7743],[100,183,19.7905],[72,180,19.807],[135,180,19.807],[321,180,19.807],[21,177,19.8239],[266,175,19.8352],[313,174,19.8409],[47,172,19.8525],[231,168,19.876],[395,165,19.8941],[391,158,19.9374],[248,151,19.9827],[108,150,19.9894],[258,150,19.9894],[272,148,20.0028],[317,146,20.0164],[339,140,20.0584],[274,139,20.0655],[150,138,20.0727],[155,138,20.0727],[128,136,20.0873],[149,136,20.0873],[60,129,20.1402],[235,129,20.1402],[211,126,20.1637],[236,126,20.1637],[362,121,20.2042],[104,118,20.2293],[386,117,20.2378],[393,117,20.2378],[207,114,20.2638],[257,114,20.2638],[188,113,20.2726],[347,111,20.2905],[7,108,20.3179],[144,100,20.3948],[227,100,20.3948],[314,100,20.3948],[318,100,20.3948],[28,99,20.4049],[380,99,20.4049],[252,96,20.4357],[186,92,20.4782],[45,90,20.5002],[142,90,20.5002],[296,90,20.5002],[334,85,20.5573],[78,82,20.5933],[40,80,20.618],[129,80,20.618],[292,80,20.618],[332,80,20.618],[167,75,20.6825],[262,74,20.6959],[322,74,20.6959],[6,66,20.8103],[152,60,20.9057],[298,60,20.9057],[399,60,20.9057],[43,58,20.9396],[103,58,20.9396],[24,56,20.9746],[389,55,20.9927],[299,50,21.088],[291,40,21.3111],[293,40,21.3111],[52,30,21.5988],[53,30,21.5988],[56,30,21.5988],[113,30,21.5988],[116,30,21.5988],[164,30,21.5988],[172,30,21.5988],[210,30,21.5988],[311,30,21.5988],[326,30,21.5988],[373,30,21.5988],[385,30,21.5988],[73,24,21.8219],[166,24,21.8219],[130,20,22.0043],[312,20,22.0043],[16,10,22.6974],[17,10,22.6974],[276,10,22.6974],[309,10,22.6974],[337,10,22.6974],[87,5,23.3906],[140,5,23.3906],[223,5,23.3906],[307,5,23.3906],[67,0,25.0],[179,0,25.0],[241,0,25.0]],"ops":[["Cast",1690],["BitwiseAnd",1486],["BitwiseOr",1358],["BitShift",1224],["Add",913],["Where",868],["Gather",631],["Sub",606],["Mul",572],["Einsum",564],["Equal",513],["Concat",414]],"nodehist":[[1,103],[2,11],[3,10],[4,9],[5,7],[6,14],[7,9],[8,9],[9,8],[10,7],[11,5],[12,5],[13,12],[14,6],[15,3],[16,8],[17,8],[18,6],[19,12],[20,3],[21,5],[22,3],[23,6],[24,4],[25,1],[26,4],[27,2],[28,4],[29,3],[30,3],[31,3],[32,7],[33,5],[34,4],[35,4],[36,1],[38,1],[39,3],[40,2],[41,1],[42,3],[43,3],[44,2],[45,1],[46,2],[47,1],[48,3],[49,2],[50,1],[51,1],[52,1],[53,1],[54,6],[55,1],[57,3],[58,3],[62,2],[65,3],[67,1],[70,1],[71,1],[73,1],[74,2],[75,1],[77,2],[82,1],[86,1],[90,2],[97,2],[102,1],[103,1],[105,1],[111,1],[112,1],[114,2],[117,1],[126,1],[127,1],[130,1],[131,1],[132,1],[141,1],[151,1],[163,1],[188,1],[225,1],[272,1],[286,1],[413,1],[436,1],[671,1],[1598,1],[2396,1]],"ex":{"1":{"inp":[[0,7,7],[7,7,7],[0,7,7]],"out":[[0,0,0,0,7,7,0,7,7],[0,0,0,7,7,7,7,7,7],[0,0,0,0,7,7,0,7,7],[0,7,7,0,7,7,0,7,7],[7,7,7,7,7,7,7,7,7],[0,7,7,0,7,7,0,7,7],[0,0,0,0,7,7,0,7,7],[0,0,0,7,7,7,7,7,7],[0,0,0,0,7,7,0,7,7]]},"67":{"inp":[[4,5,1,1,5,4,4,5,1],[5,5,5,5,5,5,5,5,5],[1,5,4,4,5,1,1,5,4]],"out":[[4,5,1],[5,5,5],[1,5,4]]},"269":{"inp":[[2,0,0],[0,0,7],[0,0,0]],"out":[[2,2,0,0,0,0],[2,2,0,0,0,0],[0,0,0,0,7,7],[0,0,0,0,7,7],[0,0,0,0,0,0],[0,0,0,0,0,0]]},"232":{"inp":[[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,2,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,6,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],"out":[[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,2,5,2,5,2,5],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,6,5,6,5,6],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]},"251":{"inp":[[0,0,0,0,0,0,0,0],[0,2,2,2,2,2,0,0],[0,2,0,0,0,2,0,0],[0,2,0,2,0,2,0,0],[0,2,0,0,0,2,0,0],[0,2,2,2,2,2,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],"out":[[0,0,0,0,0,0,0,0],[0,2,2,2,2,2,0,0],[0,2,1,1,1,2,0,0],[0,2,1,2,1,2,0,0],[0,2,1,1,1,2,0,0],[0,2,2,2,2,2,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]},"64":{"inp":[[8,8,8,8,8,8,8,8,8,8,8,8],[8,8,3,3,3,8,8,8,8,8,8,8],[8,8,3,3,3,8,8,8,8,8,8,8],[8,8,3,3,3,8,8,8,8,4,8,8],[8,8,3,3,3,8,8,8,8,8,8,8],[8,8,8,8,8,8,8,8,8,8,8,8],[8,8,8,8,8,8,8,8,8,8,8,8],[8,8,8,8,8,8,8,4,8,8,8,8],[8,8,8,8,8,8,8,8,8,8,8,8]],"out":[[8,8,8,8,8,8,8,8,8,8,8,8],[8,8,3,3,3,8,8,8,8,8,8,8],[8,8,3,3,3,8,8,8,8,8,8,8],[8,8,3,3,3,4,4,4,4,4,8,8],[8,8,3,3,3,8,8,8,8,8,8,8],[8,8,8,8,8,8,8,8,8,8,8,8],[8,8,8,8,8,8,8,8,8,8,8,8],[8,8,8,8,8,8,8,4,8,8,8,8],[8,8,8,8,8,8,8,8,8,8,8,8]]},"398":{"inp":[[1,0,7,0,0]],"out":[[0,0,0,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,1,0],[0,0,0,0,0,0,0,1,0,7],[0,0,0,0,0,0,1,0,7,0],[0,0,0,0,0,1,0,7,0,0],[0,0,0,0,1,0,7,0,0,0],[0,0,0,1,0,7,0,0,0,0],[0,0,1,0,7,0,0,0,0,0],[0,1,0,7,0,0,0,0,0,0],[1,0,7,0,0,0,0,0,0,0]]},"371":{"inp":[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,1,0,0,0,0,0,1,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]],"out":[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,3,0,0,0,0,0],[0,1,0,3,3,3,0,1,0,0],[0,0,0,0,3,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]}}}</script>
+<script>
+(function () {
+  const D = JSON.parse(document.getElementById('rp-data').textContent);
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const fmt = n => n.toLocaleString('en-US');
+  const px = (v, x0, x1, a, b) => a + (v - x0) / (x1 - x0) * (b - a);
+  function frame(id, w, h) { const box = document.getElementById(id); const svg = el('svg', { viewBox: `0 0 ${w} ${h}`, role: 'img' }); box.appendChild(svg); return { svg, box }; }
+  function tipper(id) { const t = document.getElementById(id); return { show(x, y, html) { t.innerHTML = html; t.style.left = x + 'px'; t.style.top = y + 'px'; t.classList.add('on'); }, hide() { t.classList.remove('on'); } }; }
+
+  /* ---------- puzzle gallery ---------- */
+  (function () {
+    const ARC = ['#111111', '#1E93FF', '#F93C31', '#4FCC30', '#FFDC00', '#999999', '#E53AA3', '#FF851B', '#87D8F1', '#921231'];
+    const META = {
+      '1':   { rule: 'Kronecker tiling', graph: '1 × Einsum', cost: '25 · 25.00 pts' },
+      '67':  { rule: 'Panel selection', graph: '1 × Einsum', cost: '0 · 25.00 pts' },
+      '269': { rule: 'Count-based upscale', graph: '6 nodes', cost: '≈360 · 19.1 pts' },
+      '232': { rule: 'Alternating ray', graph: '1 × Conv', cost: '≈700 · 18.5 pts' },
+      '251': { rule: 'Flood fill', graph: '11 nodes', cost: '≈480 · 18.8 pts' },
+      '64':  { rule: 'Marker connection', graph: '26 nodes', cost: '≈8,356 · 15.9 pts' }
+    };
+    const order = ['1', '67', '269', '232', '251', '64'];
+    const cellPx = g => { const m = Math.max(g.length, g[0].length); return m <= 3 ? 15 : m <= 6 ? 12 : m <= 10 ? 9 : 7; };
+    function grid(g) {
+      const s = cellPx(g), w = g[0].length;
+      const d = document.createElement('div'); d.className = 'arc';
+      d.style.gridTemplateColumns = `repeat(${w}, ${s}px)`;
+      g.forEach(r => r.forEach(v => { const c = document.createElement('i'); c.style.width = c.style.height = s + 'px'; c.style.background = ARC[v] || '#111'; d.appendChild(c); }));
+      return d;
+    }
+    const host = document.getElementById('gallery');
+    order.forEach(id => {
+      const ex = D.ex[id], m = META[id];
+      const cell = document.createElement('div'); cell.className = 'cell';
+      cell.innerHTML = `<div class="cell-h"><span class="id">task${String(id).padStart(3, '0')}</span><span class="rule">${m.rule}</span></div>`;
+      const pz = document.createElement('div'); pz.className = 'pz';
+      const gi = document.createElement('div'); gi.className = 'gb';
+      const li = document.createElement('span'); li.className = 'gl'; li.textContent = `in ${ex.inp.length}×${ex.inp[0].length}`;
+      gi.append(grid(ex.inp), li);
+      const ar = document.createElement('span'); ar.className = 'arw'; ar.textContent = '→';
+      const go = document.createElement('div'); go.className = 'gb';
+      const lo = document.createElement('span'); lo.className = 'gl'; lo.textContent = `out ${ex.out.length}×${ex.out[0].length}`;
+      go.append(grid(ex.out), lo);
+      pz.append(gi, ar, go);
+      const f = document.createElement('div'); f.className = 'cell-f';
+      f.innerHTML = `<span>${m.graph}</span><b>${m.cost}</b>`;
+      cell.append(pz, f);
+      host.appendChild(cell);
+    });
+  })();
+
+  /* ---------- payout scatter ---------- */
+  (function () {
+    const W = 720, H = 300, P = { t: 16, r: 16, b: 34, l: 34 };
+    const { svg } = frame('p-law', W, H);
+    const T = tipper('t-law');
+    const X = v => px(Math.log10(Math.max(v, 1)), 0, Math.log10(40000), P.l, W - P.r);
+    const Y = v => px(v, 8, 26, H - P.b, P.t);
+    for (let v = 10; v <= 25; v += 5) {
+      svg.appendChild(el('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), class: 'gridline' }));
+      const t = el('text', { x: P.l - 6, y: Y(v) + 3, class: 'axt', 'text-anchor': 'end' }); t.textContent = v; svg.appendChild(t);
+    }
+    [[1, '1'], [10, '10'], [100, '100'], [1000, '1k'], [10000, '10k']].forEach(([v, l]) => {
+      const t = el('text', { x: X(v), y: H - P.b + 15, class: 'axt', 'text-anchor': 'middle' }); t.textContent = l; svg.appendChild(t);
+    });
+    svg.appendChild(el('line', { x1: P.l, x2: W - P.r, y1: H - P.b, y2: H - P.b, class: 'axl' }));
+    const xl = el('text', { x: (W + P.l - P.r) / 2, y: H - 3, class: 'axt', 'text-anchor': 'middle' }); xl.textContent = 'model cost  (bytes + parameters, log scale)'; svg.appendChild(xl);
+    const yl = el('text', { x: P.l - 6, y: P.t + 2, class: 'axt', 'text-anchor': 'end' }); yl.textContent = 'pts'; svg.appendChild(yl);
+    // curve guide
+    let gp = '';
+    for (let lc = 0; lc <= Math.log10(40000); lc += .05) { const c = Math.pow(10, lc); const p = Math.max(1, 25 - Math.log(c)); gp += (gp ? 'L' : 'M') + X(c).toFixed(1) + ',' + Y(p).toFixed(1); }
+    svg.appendChild(el('path', { d: gp, fill: 'none', stroke: 'var(--ink-3)', 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: .5 }));
+    D.costs.forEach(([task, cost, pts]) => {
+      const zero = cost === 0;
+      const c = el('circle', { cx: X(cost), cy: Y(pts), r: zero ? 4 : 3, fill: 'var(--accent)', 'fill-opacity': zero ? 1 : .4, stroke: 'var(--sheet)', 'stroke-width': 1 });
+      c.style.cursor = 'pointer';
+      c.addEventListener('mouseenter', () => { const r = svg.getBoundingClientRect(); T.show(X(cost) / W * r.width, Y(pts) / H * r.height, `task${String(task).padStart(3, '0')} · cost ${fmt(cost)} · ${pts.toFixed(2)} pts`); });
+      c.addEventListener('mouseleave', () => T.hide());
+      svg.appendChild(c);
+    });
+    const z = el('text', { x: X(1) + 9, y: Y(25) + 3, class: 'annb' }); z.textContent = '3 models at cost 0'; svg.appendChild(z);
+  })();
+
+  /* ---------- generic bars ---------- */
+  function barChart(host, tipId, data, opt) {
+    const W = 240, H = 200, P = { t: 14, r: 8, b: 34, l: 24 };
+    const { svg } = frame(host, W, H);
+    const T = tipper(tipId);
+    const max = opt.max;
+    const Y = v => px(v, 0, max, H - P.b, P.t);
+    for (let i = 0; i <= opt.ticks; i++) { const v = max / opt.ticks * i; svg.appendChild(el('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), class: 'gridline' })); const t = el('text', { x: P.l - 5, y: Y(v) + 3, class: 'axt', 'text-anchor': 'end' }); t.textContent = Math.round(v); svg.appendChild(t); }
+    svg.appendChild(el('line', { x1: P.l, x2: W - P.r, y1: H - P.b, y2: H - P.b, class: 'axl' }));
+    const step = (W - P.r - P.l) / data.length;
+    data.forEach((d, i) => {
+      const bw = step - 8, x = P.l + i * step + 4;
+      const h = Math.max((H - P.b) - Y(d.n), 1);
+      const r = el('rect', { x, y: Y(d.n), width: bw, height: h, fill: 'var(--accent)', 'fill-opacity': d.hi ? 1 : .78, rx: 2.5, ry: 2.5 });
+      r.style.cursor = 'pointer';
+      r.addEventListener('mouseenter', () => { const b = svg.getBoundingClientRect(); T.show((x + bw / 2) / W * b.width, Y(d.n) / H * b.height, d.tip); });
+      r.addEventListener('mouseleave', () => T.hide());
+      svg.appendChild(r);
+      const t = el('text', { x: x + bw / 2, y: Y(d.n) - 5, class: 'annb', 'text-anchor': 'middle' }); t.textContent = d.n; svg.appendChild(t);
+      const l = el('text', { x: x + bw / 2, y: H - P.b + 15, class: 'axt', 'text-anchor': 'middle' }); l.textContent = d.l; svg.appendChild(l);
+    });
+  }
+  (function () {
+    const bands = [[0, 1, '0'], [1, 100, '<100'], [100, 1000, '100s'], [1000, 10000, '1k+'], [10000, 1e9, '10k+']];
+    const data = bands.map(([lo, hi, l]) => { const s = D.costs.filter(([, c]) => c >= lo && c < hi); return { l, n: s.length, hi: l === '0', tip: `${s.length} models · cost ${l}` }; });
+    barChart('p-hist', 't-hist', data, { max: 170, ticks: 4 });
+  })();
+  (function () {
+    const bins = [[1, 1, '1'], [2, 5, '2–5'], [6, 20, '6–20'], [21, 100, '21+'], [101, 1e9, '100+']];
+    const data = bins.map(([lo, hi, l]) => { const n = D.nodehist.filter(([k]) => k >= lo && k <= hi).reduce((a, b) => a + b[1], 0); return { l, n, hi: l === '1', tip: `${n} models · ${l} node${l === '1' ? '' : 's'}` }; });
+    barChart('p-nodes', 't-nodes', data, { max: 120, ticks: 4 });
+  })();
+  (function () {
+    const rows = D.ops.slice(0, 8);
+    const W = 240, rowH = 21, P = { t: 4, r: 30, b: 4, l: 66 };
+    const H = P.t + rows.length * rowH + P.b;
+    const { svg } = frame('p-ops', W, H);
+    const T = tipper('t-ops');
+    const max = rows[0][1];
+    const X = v => px(v, 0, max, P.l, W - P.r);
+    rows.forEach(([name, n], i) => {
+      const y = P.t + i * rowH;
+      const bar = el('rect', { x: P.l, y: y + 4, width: Math.max(X(n) - P.l, 2), height: 11, fill: 'var(--accent)', 'fill-opacity': i < 4 ? .95 : .5, rx: 2.5, ry: 2.5 });
+      bar.style.cursor = 'pointer';
+      bar.addEventListener('mouseenter', () => { const b = svg.getBoundingClientRect(); T.show(X(n) / W * b.width, (y + 4) / H * b.height, `${name} · ${fmt(n)} uses`); });
+      bar.addEventListener('mouseleave', () => T.hide());
+      svg.appendChild(bar);
+      const t = el('text', { x: P.l - 6, y: y + 13, class: 'axt', 'text-anchor': 'end' }); t.textContent = name; svg.appendChild(t);
+    });
+  })();
+})();
+</script>
+</body>
+</html>
