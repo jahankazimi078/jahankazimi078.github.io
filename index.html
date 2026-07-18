@@ -217,8 +217,8 @@
             <span class="tags">Python · Statistics · Health Equity · Dashboards</span>
           </li>
           <li>
-            <span class="meta">In progress</span>
-            <strong>Balatro RL Agent</strong> — a reinforcement-learning agent that learns to play Balatro. Built a seed-faithful headless reimplementation of the game in Rust — bit-exact RNG, the full scoring pipeline, all 150 jokers, consumables, vouchers, and boss blinds, validated with zero divergence against 1,100+ live game steps — exposed to Python as a vectorized environment stepping thousands of games in parallel. Training an entity-token transformer policy with PPO, autoregressive masked action heads, and an ante-ladder curriculum at ~10k env-steps/s on a single consumer GPU; already past the best previously published RL result for the game, with the final curriculum stages still ahead.
+            <span class="meta">2026 · 71.0% full-run win rate, live-verified</span>
+            <strong><a href="https://github.com/jahankazimi078/balatroagent" target="_blank" rel="noopener">Balatro RL Agent</a></strong> — a reinforcement-learning agent that beats Balatro. Built a seed-faithful headless reimplementation of the game in Rust — bit-exact RNG, the full scoring pipeline, all 150 jokers, consumables, vouchers, and boss blinds — exposed to Python as a vectorized environment stepping thousands of games in parallel, and cross-validated against the real game with zero state divergences over 1,300+ live-verified steps. Trained a ~1.1M-parameter entity-token transformer with PPO (autoregressive masked pointer heads, ante-ladder curriculum, snapshot backward-curriculum) for 4 billion environment steps on cloud GPUs, reaching a <strong>71.0% full-run (ante 8) win rate</strong> on ~8,000 held-out seeds — far past the best previously published RL result for the game. Verified end-to-end by piloting the <em>real</em> game live to an ante-8 win: 223 actions, zero sim–game divergences.
             <span class="tags">Rust · Python · PyTorch · Reinforcement Learning · PPO</span>
           </li>
           <li>
