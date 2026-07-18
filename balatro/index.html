@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Balatro RL Agent — Beating Balatro with Reinforcement Learning</title>
-<meta name="description" content="Project report: a reinforcement-learning agent that beats Balatro — a bit-exact Rust simulator, PPO training over 4 billion steps, a 71.0% full-run win rate, and a live win against the real game."/>
+<title>Balatro RL Agent — From Rust Simulator to Live Game</title>
+<meta name="description" content="How I built a seed-faithful Balatro simulator in Rust, trained a compact transformer with PPO for 4 billion environment steps, and verified a 71.0% win-rate policy in the real game."/>
 </head>
 <body>
 <style>
@@ -221,36 +221,37 @@
 
     <div class="titleblock">
       <span class="meta">Project report · July 2026</span>
-      <h1>Beating Balatro with a bit-exact simulator and four billion hands</h1>
-      <p class="standfirst">How a 1.1M-parameter transformer learned to win LocalThunk's poker roguelike — by first rebuilding the entire game in Rust, bit for bit, and then playing it four billion times.</p>
+      <h1>Training a Balatro agent that works in the real game</h1>
+      <p class="standfirst">I built a seed-faithful Balatro simulator in Rust, trained a 1.1M-parameter transformer with PPO, and checked every live action against the simulator before calling the project finished.</p>
 
       <div class="stats" role="list" aria-label="Headline results">
-        <div role="listitem"><div class="n">71.0%</div><div class="k">ante-8 win rate</div></div>
-        <div role="listitem"><div class="n">4B</div><div class="k">training steps</div></div>
-        <div role="listitem"><div class="n">150</div><div class="k">jokers ported</div></div>
-        <div role="listitem"><div class="n">0</div><div class="k">live divergences</div></div>
+        <div role="listitem"><div class="n">71.0%</div><div class="k">certified win rate</div></div>
+        <div role="listitem"><div class="n">4B</div><div class="k">environment steps</div></div>
+        <div role="listitem"><div class="n">150</div><div class="k">joker implementations</div></div>
+        <div role="listitem"><div class="n">0</div><div class="k">unexplained live divergences</div></div>
       </div>
     </div>
 
     <section>
-      <p>Balatro is a poker-flavored roguelike deckbuilder: long runs, sparse rewards, heavy randomness, and a combinatorial action space — a genuinely hard target for reinforcement learning. The real game steps far too slowly to train against, so the project's core wager was <em>fidelity</em>: reimplement the game as a headless Rust simulator faithful to the original down to its random-number generator, train against that at tens of thousands of steps per second, then hold the result to account against the genuine article. The certified policy wins <strong>71.0%</strong> of full runs (ante 8, White Stake) over ~8,000 held-out seeds — far past the best previously published RL result for the game — and, driven live against real Balatro, piloted a 223-action run to an ante-8 victory with <strong>zero</strong> divergences between simulated and actual game state.</p>
+      <p>I started this project with a stricter goal than “make an agent win in a simulator.” I wanted the same policy to control my copy of Balatro, while the simulator predicted the real game state after every decision. That made environment fidelity the central engineering problem, not a cleanup task at the end.</p>
+      <p>The final policy wins <strong>71.0%</strong> of complete Red Deck runs on White Stake across roughly 8,000 held-out seeds. Four late checkpoints all scored between 70.7% and 71.1%, which gave me confidence that the result was stable. I then connected the certified checkpoint to the real game: it won a full run in 223 actions, while the lockstep validator found <strong>no unexplained state differences</strong>.</p>
     </section>
 
     <section>
-      <h2>The game</h2>
-      <p><a href="https://www.playbalatro.com/" target="_blank" rel="noopener">Balatro</a> (LocalThunk, 2024) hands you a standard 52-card deck and asks you to score poker hands. A run is eight <strong>antes</strong>; each ante is three <strong>blinds</strong> — Small, Big, and a Boss — and each blind is a chip target you must reach within a budget of four hands and a few discards. Beat the Boss Blind of ante 8 and the run is won. Fall short anywhere and it's over.</p>
-      <p>What makes it a deckbuilder is everything between blinds. The shop sells <strong>jokers</strong> — up to five persistent cards that warp the scoring rules (flat bonuses, per-suit triggers, retriggers, multipliers that grow as you play) — alongside planet cards that level up specific poker hands, tarot and spectral cards that mutate the deck itself, vouchers, and booster packs. Money is earned per blind and pays <strong>interest</strong>, so a run is also an economy: spend now, or bank toward compounding. Boss Blinds impose their own rules (debuffing a suit, forcing card draws, capping hand size), and each blind can instead be skipped for a tag with a delayed payoff.</p>
-      <p>For a learning agent this is a nasty combination: episodes run hundreds of decisions with the only true signal — win or lose — arriving at the very end; the shop is stochastic; and a single "action" can be a composite like <em>choose these four of your eight cards, and discard rather than play them</em>. There is no public environment for it, and prior RL attempts have topped out well short of consistent full-run wins.</p>
+      <h2>Why Balatro is a difficult RL environment</h2>
+      <p><a href="https://www.playbalatro.com/" target="_blank" rel="noopener">Balatro</a>, created by LocalThunk, is a roguelike deckbuilder built around poker hands. A standard run lasts eight <strong>antes</strong>. Each ante contains a Small Blind, a Big Blind, and a Boss Blind, and every blind sets a score that must be reached with a limited number of hands and discards. Beating the ante-8 Boss Blind wins the run.</p>
+      <p>The poker hands are only the foundation. Between blinds, the player buys jokers, consumables, vouchers, and booster packs; changes cards in the deck; upgrades hand types; and decides whether to spend money or preserve it for interest. Jokers can add chips, add mult, multiply mult, retrigger cards, or change the value of later decisions. Boss Blinds introduce exceptions of their own, and skipping a blind trades an immediate reward for a tag that may pay off later.</p>
+      <p>For an agent, this creates three linked problems. The final win signal may be hundreds of decisions away. Shop inventory and card draws depend on seeded random streams. The action space also changes with the state: playing or discarding requires choosing a variable-size subset of cards, while shops add buying, selling, rerolling, opening packs, and using consumables. Training directly through the animated game would be far too slow, so I needed a faster environment that still behaved like Balatro.</p>
     </section>
 
     <section>
-      <h2>The math of a run</h2>
-      <p>Every played hand resolves to a single product. The hand type contributes base <strong>chips</strong> and base <strong>mult</strong> (a level-1 Flush is worth 35 × 4), each scoring card adds its rank value to the chip side, and then the jokers pile on — some add chips, some add mult, and the valuable ones <em>multiply</em> mult:</p>
+      <h2>Scoring, scaling, and seeded randomness</h2>
+      <p>Every hand ends with the same basic calculation: final chips multiplied by final mult. The chosen poker hand supplies the starting values, scoring cards add chips, and jokers and card effects modify either side as the scoring pipeline runs. A level-1 Flush, for example, begins at 35 chips and 4 mult:</p>
       <div class="block">
-        <div class="eq">score = (base + card + joker chips) × (base mult + joker mult) × ∏ ×mult jokers</div>
-        <p>Play K♥&nbsp;Q♥&nbsp;9♥&nbsp;6♥&nbsp;3♥ — a Flush. Base 35 chips plus card chips 10+10+9+6+3 gives 73; times base mult 4 scores 292. Add a joker worth +4 mult and another worth ×1.5: 73 × 8 × 1.5 = <strong>876</strong>. Planet cards permanently raise a hand type's base values, one level at a time.</p>
+        <div class="eq">hand score = final chips × final mult</div>
+        <p>Playing K♥&nbsp;Q♥&nbsp;9♥&nbsp;6♥&nbsp;3♥ adds 38 card chips to the Flush's base 35, producing 73 × 4 = 292 before other effects. A +4 mult joker followed by a ×1.5 mult joker raises that example to 73 × 8 × 1.5 = <strong>876</strong>. The actual simulator preserves Balatro's full effect order, including enhancements, editions, retriggers, and per-joker state.</p>
       </div>
-      <p>The reason the game is about <em>engines</em> rather than poker is the shape of the requirement curve. The base chip target grows near-exponentially by ante — and the Boss Blind doubles it:</p>
+      <p>The challenge is that the required score rises much faster than an early build's additive bonuses. By ante 8, a White Stake Boss Blind requires 100,000 chips. Winning consistently means assembling effects that scale together rather than relying on the poker hand alone.</p>
 
       <figure>
         <div class="figpanel">
@@ -280,77 +281,77 @@
             </svg>
             <div class="tip" id="blindtip"></div>
           </div>
-          <figcaption>Base requirements 300 → 800 → 2,000 → 5,000 → 11,000 → 20,000 → 35,000 → 50,000. The ante-8 boss demands 100,000 chips — the additive bonuses that carried ante 1 are a rounding error by then, which is why every winning run is a hunt for multiplicative scaling.</figcaption>
+          <figcaption>White Stake base requirements rise from 300 chips at ante 1 to 50,000 at ante 8. Boss Blinds use twice the base requirement, so the final Boss Blind asks for 100,000.</figcaption>
         </div>
       </figure>
 
-      <p>The property the whole project leans on: Balatro is <strong>fully deterministic given its seed</strong>. Every random event — shop contents, pack rolls, boss selection, card draws — pulls from a <em>named stream</em>. A stream's state is initialized by hashing its name with the run seed via the game's own string-hash:</p>
+      <p>The simulator is possible because Balatro's random choices are reproducible. Given the same run seed and the same sequence of actions, shop rolls, packs, bosses, and card draws come from named pseudorandom streams. Each stream is initialized from its name and the run seed using the game's string hash:</p>
       <div class="block">
         <div class="eq">num ← ( (1.1239285023 / num) · byteᵢ · π + π·i ) mod 1</div>
-        <p>iterated over the string's bytes from the end (<code>pseudohash</code>). Each draw advances the stream — <code>s ← |round₁₃((2.134453429141 + 1.72431234·s) mod 1)|</code>, where <code>round₁₃</code> is a printf <code>%.13f</code> round-trip — averages it with the hashed seed, and feeds the result to LuaJIT's Tausworthe <code>math.random</code>.</p>
+        <p>This is Balatro's <code>pseudohash</code>, evaluated from the end of the string. A draw advances its named stream, rounds through a <code>%.13f</code> string conversion, combines the result with the hashed run seed, and seeds LuaJIT's Tausworthe <code>math.random</code>.</p>
       </div>
-      <p>All of this is IEEE-754 double arithmetic, which means it can be reproduced <em>bit for bit</em> in another language — same seed in, same shop out. That single fact is what makes a faithful external simulator possible at all.</p>
+      <p>I ported that RNG path with the same evaluation order and IEEE-754 operations. Its output is bit-exact against vectors generated by a pinned, game-era LuaJIT build, so the simulator can reproduce the same seeded future instead of merely producing similar randomness.</p>
     </section>
 
     <section>
-      <h2>Rebuilding Balatro, bit for bit</h2>
-      <p>The real game is a LÖVE/Lua application with animations in the loop — fine for humans, hopeless for a training regime that needs billions of steps. So the environment is a from-scratch <strong>headless reimplementation in Rust</strong>: the full run loop, the scoring pipeline, the shop and pack economy, consumables, vouchers, tags, boss blinds, and all <strong>150 jokers</strong>, exposed to Python as a vectorized environment that steps thousands of games in parallel.</p>
-      <p>Fidelity was treated as the product, not a nice-to-have. Every ported behavior cites the exact line of game source it mirrors; Lua's evaluation order and floating-point quirks (including that <code>%.13f</code> round-trip in the RNG) are preserved verbatim. The RNG layer was verified bit-exact against test vectors generated by a pinned, game-era LuaJIT build — a detail that mattered immediately, since the system LuaJIT on the development machine produces <em>different</em> random streams. Scoring, shop rolls, and joker triggers are all held to oracle vectors the same way: <strong>294 tests</strong> stand between the simulator and quiet drift.</p>
-      <p>Passing your own tests is not the same as matching the game, though. The final gate is a cross-validation harness that plays the <em>real</em> Balatro (via the balatrobot mod) and the simulator in lockstep on the same seed, diffing the <strong>entire game state after every single action</strong> — every card, every joker, every dollar. Roughly 1,300 live-verified steps across seeded runs, three driving policies, and all eight antes ended with zero unexplained divergences. Getting there surfaced four real simulator bugs the unit tests could never have caught:</p>
+      <h2>Building the simulator</h2>
+      <p>The training environment is a from-scratch, headless reimplementation in Rust. It covers the run loop, scoring, shops, packs, consumables, vouchers, tags, Boss Blinds, and all <strong>150 jokers</strong>. A PyO3 binding exposes it to Python as a vectorized environment, allowing thousands of runs to advance in parallel without rendering the game.</p>
+      <p>I treated the implementation as a compatibility project. Ported behaviors include source-location notes, and tests compare RNG, scoring, shop, and joker outputs with oracle vectors generated from a pinned LuaJIT build. The simulator currently has <strong>294 tests</strong>. The repository contains the original Rust implementation and generated numeric vectors, but no Balatro code or game assets.</p>
+      <p>Unit tests were only the first layer. I also built a cross-validation harness around <a href="https://github.com/coder/balatrobot" target="_blank" rel="noopener">balatrobot</a>, which exposes the real game through a local JSON-RPC API. The harness starts the simulator and Balatro on the same seed, sends each action to both, normalizes documented mod-framework quirks, and compares the complete state after every step. Across more than <strong>1,100 live-verified actions</strong>, including all eight antes, it found no unexplained divergence. More importantly, it found mistakes that isolated tests had missed:</p>
       <ul class="dash">
-        <li><strong>The Red Deck gives 4 discards, not 3.</strong> The deck's "+1 discard" applies to a base the code had wrong — an error that directly shaped every training episode, found only by diffing live state.</li>
-        <li><strong>End-of-round cards return to the deck's front,</strong> not its back — a draw-order difference that compounds over a run.</li>
-        <li><strong>Card debuffs clear the moment a blind is defeated,</strong> not at round end.</li>
-        <li><strong>Rounds survived by Mr. Bones pay no blind reward</strong> — the sim was paying out on a technicality the game doesn't honor.</li>
+        <li><strong>Red Deck starts with four discards per round.</strong> I had applied its +1 bonus to the wrong base value, changing every episode used for training.</li>
+        <li><strong>Cards return to the front of the deck after a round.</strong> Returning them to the back changed later draw order even when the current round looked correct.</li>
+        <li><strong>Card debuffs clear as soon as the blind is defeated.</strong> My first implementation kept them active until the round transition.</li>
+        <li><strong>Mr. Bones saves the run without awarding the blind payout.</strong> The simulator originally paid the normal reward after the joker prevented a loss.</li>
       </ul>
-      <p>The harness also caught one discrepancy that turned out to be a bug in the game's own modding-framework beta rather than in the simulator — documented and normalized, not ported.</p>
+      <p>The validator also isolated scoring differences caused by the Steamodded beta used to run balatrobot. Those are documented and normalized in the harness rather than copied into the simulator, whose target is the unmodified game's behavior.</p>
     </section>
 
     <section>
-      <h2>Four billion hands</h2>
-      <p>The agent observes the game as <strong>entity tokens</strong>: one token per hand card (38 features — rank, suit, enhancement, edition, seal, debuff state), per joker, per consumable, per shop slot, plus the blind and a global state vector — with head-room reserved in every vocabulary so the encoding never has to break. A ~<strong>1.1M-parameter transformer</strong> attends over these tokens and acts through a composite, fully <strong>masked</strong> action space: a 25-way action-type head (play, discard, buy, sell, use, reroll, skip, cash out…) followed by conditional parameter heads, including an autoregressive pointer that selects cards from the hand one at a time until it emits STOP. Illegal choices are masked to zero probability, and only the heads the chosen type actually consumes are sampled.</p>
-      <p>Training is PPO, with the interesting work in the schedule rather than the algorithm:</p>
+      <h2>Training the policy</h2>
+      <p>The policy sees the game as a set of entities rather than one flat vector. Hand cards, jokers, consumables, shop slots, the current blind, and global run state each receive their own token. A roughly <strong>1.1M-parameter transformer</strong> attends across those tokens and selects an action type, then fills in only the parameters that action needs.</p>
+      <p>Card selection uses an autoregressive pointer head: it chooses one card at a time until it emits STOP. Action masks remove illegal choices before sampling, so the policy cannot buy an unaffordable item, discard with no discards left, or select a nonexistent card. I trained the model with PPO; most of the work was in deciding which states it should learn from and when:</p>
       <ul class="dash">
-        <li><strong>Ante-ladder curriculum</strong> — episodes first end at ante 1, then 2, 3, 5, 8; the agent is promoted each time it clears a 70% win rate on held-out seeds, so it always trains at the frontier of what it can do rather than drowning in eight-ante failures.</li>
-        <li><strong>Snapshot backward curriculum</strong> — a pool of mid-run save-states lets a fraction of episodes begin at ante 4 with a real economy already built (each restored future independently re-randomized, so memorization is impossible), giving late-game states training coverage they'd otherwise rarely earn. The fraction anneals to zero so the final regime is pure fresh starts.</li>
-        <li><strong>Reward annealing</strong> — a dense per-blind shaping signal gets the policy off the ground, then is annealed away (β → 0.1) so what's optimized at the end is essentially the only thing that matters: winning the run.</li>
-        <li><strong>Throughput engineering</strong> — bf16-autocast updates over fp32 master weights, <code>torch.compile</code>, and a GPU-resident rollout buffer, every toggle gated by bit-identical A/B tests against the plain trainer. ~10k env-steps/s on a desktop RTX 4070; ~48k on the rented 2×RTX-5090 box that ran the main schedule.</li>
+        <li><strong>Ante curriculum.</strong> Training began with runs that ended after ante 1, then moved through antes 2, 3, 5, and 8. Promotion required at least a 70% greedy win rate on held-out seeds.</li>
+        <li><strong>Snapshot starts.</strong> Some episodes began from saved mid-run states so the policy could practice late-game decisions before it could reach them consistently. The restored future was re-randomized, and the snapshot fraction eventually fell to zero so final training used only fresh runs.</li>
+        <li><strong>Reward annealing.</strong> Early training used denser progress rewards for scoring and clearing blinds. I reduced their weight to β = 0.1 so the later policy was driven mainly by the +15 reward for winning the run.</li>
+        <li><strong>Throughput work.</strong> bf16 updates over fp32 master weights, <code>torch.compile</code>, and a GPU-resident rollout buffer raised throughput from about 10,000 environment steps per second on my RTX 4070 to about 48,000 on the rented dual-RTX-5090 machine used for the main run.</li>
       </ul>
-      <p>The full schedule was <strong>4 billion environment steps</strong>, with a second seed trained from the same fork as a confirmation run — it matched the main run's learning curve at every checkpoint. A live A/B settled a config question mid-flight (2 PPO epochs beat 4, per step <em>and</em> per wall-clock hour). Certification at the end was deliberately boring: four late checkpoints, evaluated greedily on ~8,000 held-out seeds each, all landed between 70.7% and 71.1% — converged, not lucky.</p>
+      <p>The main schedule ran for <strong>4 billion environment steps</strong>. A second training seed followed the same curve through 3.71 billion steps, and an in-training A/B test showed that two PPO epochs outperformed four both per step and per hour. For the final evaluation, I ran four checkpoints from 3.92 to 4.00 billion steps greedily over roughly 8,000 held-out seeds each. Their win rates ranged from 70.7% to 71.1%; the certified 4.00-billion-step checkpoint scored <strong>71.0%</strong>.</p>
       <div class="tbl-wrap">
         <table>
-          <tr><th>Milestone</th><th>Full-run (ante 8) win rate</th></tr>
-          <tr><td>Prior published RL results</td><td>no consistent full-run wins</td></tr>
-          <tr><td>Mid-curriculum (2.2B steps)</td><td>64–68%</td></tr>
-          <tr><td><strong>Certified checkpoint (4.0B steps)</strong></td><td><strong>71.0%</strong> over ~8,000 held-out seeds, greedy</td></tr>
+          <tr><th>Evaluation point</th><th>Ante-8 win rate</th></tr>
+          <tr><td>Mid-training (about 2.18B steps)</td><td>64.5–68.0% across milestone evaluations</td></tr>
+          <tr><td>Late checkpoints (3.92–4.00B steps)</td><td>70.7–71.1% over ~8,000 held-out seeds each</td></tr>
+          <tr><td><strong>Certified checkpoint (4.00B steps)</strong></td><td><strong>71.0%</strong>, greedy policy</td></tr>
         </table>
       </div>
     </section>
 
     <section>
-      <h2>Playing the real game</h2>
-      <p>A policy that wins in your own simulator has proven exactly one thing: it can win in your simulator. The closing demonstration removes that asterisk. A bridge drives the actual game — the policy picks an action, the bridge executes it in real Balatro, and the simulator steps in lockstep, with the full-state diff from the cross-validation harness running after <em>every</em> action.</p>
+      <h2>Taking the policy into Balatro</h2>
+      <p>A strong simulator result does not guarantee that a policy will transfer. For the final test, I ran the certified checkpoint through the same bridge used for cross-validation. The policy read the simulator's encoded state, selected an action, and sent it to the real game. Both sides advanced together, and the validator compared their complete states after every action.</p>
       <figure>
         <div class="figpanel img">
           <img src="demo_win.webp" alt="Balatro victory screen: the boss blind of ante 8 defeated with a score of 156,340 against a requirement of 100,000" width="1200" height="675"/>
         </div>
-        <figcaption>The live run, seed PQD3RI3I: the policy beat real Balatro across all eight antes — 223 actions, the Amber Acorn boss closed out at 156,340 chips against the 100,000 requirement, $99 in the bank — with zero divergences between predicted and actual game state at every step.</figcaption>
+        <figcaption>Live run PQD3RI3I: the policy defeated Amber Acorn at the end of ante 8 with 156,340 chips against a 100,000-chip requirement. It completed the run in 223 actions with $99 remaining and no unexplained simulator–game divergence.</figcaption>
       </figure>
-      <p>Watching it play is instructive. Each decision is a single forward pass — the 1.1M-parameter model is so small that inference is effectively free next to the game's animations. It plays the whole surface of the game: choosing which blinds to skip for tags, steering discards toward the hand types its jokers pay for, working the shop with sells and rerolls, and visibly playing the <em>economy</em> — the $99 it finished with is a policy that learned to sit above the interest cap and let compounding do quiet work across the run.</p>
-      <p>The lockstep run also earned its keep as an instrument: the only issues it surfaced were in the driving harness, not the models — the real game pays a stale dollar amount if "cash out" is pressed mid-animation, and the mod's use/sell commands silently no-op outside certain phases. Both are now handled, and the sim's model of the game stands unfalsified at every step it has ever been tested on.</p>
+      <p>The policy used the full decision space: it skipped blinds for tags, chose cards to play and discard, bought and sold items, rerolled shops, and managed its money. Inference was a single forward pass, so the model added negligible delay beside the game's animations.</p>
+      <p>The run also improved the bridge itself. I found that cashing out during an animation could read a stale dollar value, and that balatrobot's use and sell commands silently did nothing outside specific game phases. I added waits and phase-aware masks for both cases. Neither issue required changing the policy or simulator.</p>
     </section>
 
     <section>
-      <h2>Coda</h2>
-      <p>The bet that paid off was putting the engineering rigor into the <em>environment</em> rather than the model. A 1.1M-parameter policy is modest by any standard; what it had that prior attempts didn't was four billion hands of an environment faithful enough that nothing learned there broke on contact with reality — zero divergences is not a rounding of "few," it is the number.</p>
-      <p>The natural extensions are all open: a larger model fine-tuned from the certified checkpoint, search on top of the policy (the simulator makes expectimax over shop outcomes cheap), and the harder deck-and-stake combinations beyond White Stake. The floor they'd build on — a verified, vectorized, bit-exact Balatro — is the part that was hard to get right, and it's done.</p>
+      <h2>What I took away</h2>
+      <p>The model was the smallest part of the story. The difficult work was building an environment fast enough for billions of steps, precise enough to reproduce seeded runs, and observable enough to explain a mismatch when one appeared. The lockstep validator turned “the simulator seems right” into a claim I could test after every action.</p>
+      <p>There is still room to push the result: fine-tune a larger policy, add search over simulator futures, and train on harder decks and stakes. Those experiments can now start from a tested simulator, a reproducible training stack, and a policy that has already transferred to the real game.</p>
       <p class="tags">Rust · Python · PyTorch · Reinforcement Learning · PPO</p>
     </section>
 
   </main>
 
   <footer>
-    <span>© 2025 Jahan Kazimi</span>
+    <span>© 2026 Jahan Kazimi</span>
     <span><a href="https://github.com/jahankazimi078/balatroagent" target="_blank" rel="noopener">Source on GitHub</a></span>
   </footer>
 
