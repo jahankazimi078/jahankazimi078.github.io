@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Balatro RL Agent — Beating Balatro with Reinforcement Learning</title>
+<meta name="description" content="Project report: a reinforcement-learning agent that beats Balatro — a bit-exact Rust simulator, PPO training over 4 billion steps, a 71.0% full-run win rate, and a live win against the real game."/>
+</head>
+<body>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --text: #ededed;
+    --body: #d4d4d4;
+    --muted: #a1a1a1;
+    --faint: #737373;
+    --border: #262626;
+    --panel: #111111;
+    --underline: rgba(255, 255, 255, 0.3);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--text); text-decoration: underline; text-decoration-color: var(--underline); text-underline-offset: 3px; transition: text-decoration-color 0.15s; }
+  a:hover { text-decoration-color: var(--text); }
+  a:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 2px; }
+
+  .wrap {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 0 1rem;
+  }
+  header .name {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+  }
+  header nav { display: flex; gap: 1.25rem; }
+  header nav a {
+    font-size: 0.8125rem;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  header nav a:hover { color: var(--text); }
+
+  /* ── SECTIONS ── */
+  section { margin: 3.5rem 0; }
+
+  h1, h2 {
+    color: var(--text);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 0.4rem; }
+  h2 { font-size: 1.25rem; margin: 2.5rem 0 1.25rem; }
+
+  p { margin-bottom: 1.1rem; }
+  strong { color: var(--text); font-weight: 600; }
+
+  .meta {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--faint);
+    margin-bottom: 0.15rem;
+  }
+
+  .tags {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+    margin-top: 0.35rem;
+  }
+
+  /* Dash lists (rauchg style) */
+  ul.dash { list-style: none; }
+  ul.dash li {
+    position: relative;
+    padding-left: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  ul.dash li::before {
+    content: "–";
+    position: absolute;
+    left: 0;
+    color: var(--faint);
+  }
+  ul.dash li strong { color: var(--text); font-weight: 600; }
+
+  /* Title block */
+  .titleblock { margin-top: 3.5rem; }
+  .titleblock .standfirst { color: var(--muted); margin-top: 0.75rem; }
+
+  /* Stat row */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin: 2rem 0 0;
+  }
+  .stats > div { padding: 1rem 1rem 1rem 0; }
+  .stats .n { color: var(--text); font-weight: 700; font-size: 1.25rem; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .stats .k { font-size: 0.75rem; color: var(--faint); margin-top: 0.15rem; }
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* Code + equation blocks */
+  code {
+    font-family: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+    color: var(--text);
+  }
+  .block {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.25rem;
+    margin: 1.5rem 0;
+  }
+  .block .eq {
+    font-family: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--text);
+    text-align: center;
+    padding: 0.2rem 0 0.9rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .block p { font-size: 0.875rem; color: var(--muted); margin: 0; }
+  .block code { background: #171717; }
+
+  /* Figures */
+  figure { margin: 1.75rem 0; }
+  .figpanel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.25rem 1rem;
+  }
+  .figpanel.img { padding: 0; overflow: hidden; }
+  .figpanel.img img { display: block; width: 100%; height: auto; }
+  .fig-t { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+  .fig-s { font-size: 0.75rem; color: var(--faint); margin-bottom: 1rem; }
+  figcaption { font-size: 0.8125rem; color: var(--faint); margin-top: 0.75rem; line-height: 1.6; }
+
+  .plot { position: relative; width: 100%; }
+  .plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .gridline { stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 4; }
+  .axl { stroke: var(--border); stroke-width: 1; }
+  .axt { font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 9.5px; fill: var(--faint); font-variant-numeric: tabular-nums; }
+  .annb { font-family: 'Inter', -apple-system, sans-serif; font-size: 10.5px; fill: var(--text); font-weight: 600; }
+  .tip { position: absolute; pointer-events: none; opacity: 0; transform: translate(-50%, -118%); background: var(--text); color: var(--bg); padding: 0.35rem 0.5rem; border-radius: 4px; font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 0.66rem; line-height: 1.4; white-space: nowrap; transition: opacity 0.1s; z-index: 5; }
+  .tip.on { opacity: 1; }
+
+  /* Table */
+  .tbl-wrap { overflow-x: auto; margin: 1.5rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
+  th { font-size: 0.75rem; color: var(--faint); font-weight: 500; text-align: left; padding: 0.5rem 1rem 0.5rem 0; border-bottom: 1px solid var(--border); }
+  td { padding: 0.55rem 1rem 0.55rem 0; border-bottom: 1px solid var(--border); color: var(--muted); font-variant-numeric: tabular-nums; }
+  td strong { color: var(--text); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 4rem;
+    padding: 1.5rem 0 3rem;
+    font-size: 0.8125rem;
+    color: var(--faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.5rem;
+    justify-content: space-between;
+  }
+  footer a { color: var(--faint); }
+
+  @media (max-width: 560px) {
+    header nav { gap: 0.9rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <a class="name" href="../" target="_blank" rel="noopener">Jahan Kazimi</a>
+    <nav aria-label="Site sections">
+      <a href="../" target="_blank" rel="noopener">Portfolio</a>
+      <a href="https://github.com/jahankazimi078/balatroagent" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <div class="titleblock">
+      <span class="meta">Project report · July 2026</span>
+      <h1>Beating Balatro with a bit-exact simulator and four billion hands</h1>
+      <p class="standfirst">How a 1.1M-parameter transformer learned to win LocalThunk's poker roguelike — by first rebuilding the entire game in Rust, bit for bit, and then playing it four billion times.</p>
+
+      <div class="stats" role="list" aria-label="Headline results">
+        <div role="listitem"><div class="n">71.0%</div><div class="k">ante-8 win rate</div></div>
+        <div role="listitem"><div class="n">4B</div><div class="k">training steps</div></div>
+        <div role="listitem"><div class="n">150</div><div class="k">jokers ported</div></div>
+        <div role="listitem"><div class="n">0</div><div class="k">live divergences</div></div>
+      </div>
+    </div>
+
+    <section>
+      <p>Balatro is a poker-flavored roguelike deckbuilder: long runs, sparse rewards, heavy randomness, and a combinatorial action space — a genuinely hard target for reinforcement learning. The real game steps far too slowly to train against, so the project's core wager was <em>fidelity</em>: reimplement the game as a headless Rust simulator faithful to the original down to its random-number generator, train against that at tens of thousands of steps per second, then hold the result to account against the genuine article. The certified policy wins <strong>71.0%</strong> of full runs (ante 8, White Stake) over ~8,000 held-out seeds — far past the best previously published RL result for the game — and, driven live against real Balatro, piloted a 223-action run to an ante-8 victory with <strong>zero</strong> divergences between simulated and actual game state.</p>
+    </section>
+
+    <section>
+      <h2>The game</h2>
+      <p><a href="https://www.playbalatro.com/" target="_blank" rel="noopener">Balatro</a> (LocalThunk, 2024) hands you a standard 52-card deck and asks you to score poker hands. A run is eight <strong>antes</strong>; each ante is three <strong>blinds</strong> — Small, Big, and a Boss — and each blind is a chip target you must reach within a budget of four hands and a few discards. Beat the Boss Blind of ante 8 and the run is won. Fall short anywhere and it's over.</p>
+      <p>What makes it a deckbuilder is everything between blinds. The shop sells <strong>jokers</strong> — up to five persistent cards that warp the scoring rules (flat bonuses, per-suit triggers, retriggers, multipliers that grow as you play) — alongside planet cards that level up specific poker hands, tarot and spectral cards that mutate the deck itself, vouchers, and booster packs. Money is earned per blind and pays <strong>interest</strong>, so a run is also an economy: spend now, or bank toward compounding. Boss Blinds impose their own rules (debuffing a suit, forcing card draws, capping hand size), and each blind can instead be skipped for a tag with a delayed payoff.</p>
+      <p>For a learning agent this is a nasty combination: episodes run hundreds of decisions with the only true signal — win or lose — arriving at the very end; the shop is stochastic; and a single "action" can be a composite like <em>choose these four of your eight cards, and discard rather than play them</em>. There is no public environment for it, and prior RL attempts have topped out well short of consistent full-run wins.</p>
+    </section>
+
+    <section>
+      <h2>The math of a run</h2>
+      <p>Every played hand resolves to a single product. The hand type contributes base <strong>chips</strong> and base <strong>mult</strong> (a level-1 Flush is worth 35 × 4), each scoring card adds its rank value to the chip side, and then the jokers pile on — some add chips, some add mult, and the valuable ones <em>multiply</em> mult:</p>
+      <div class="block">
+        <div class="eq">score = (base + card + joker chips) × (base mult + joker mult) × ∏ ×mult jokers</div>
+        <p>Play K♥&nbsp;Q♥&nbsp;9♥&nbsp;6♥&nbsp;3♥ — a Flush. Base 35 chips plus card chips 10+10+9+6+3 gives 73; times base mult 4 scores 292. Add a joker worth +4 mult and another worth ×1.5: 73 × 8 × 1.5 = <strong>876</strong>. Planet cards permanently raise a hand type's base values, one level at a time.</p>
+      </div>
+      <p>The reason the game is about <em>engines</em> rather than poker is the shape of the requirement curve. The base chip target grows near-exponentially by ante — and the Boss Blind doubles it:</p>
+
+      <figure>
+        <div class="figpanel">
+          <div class="fig-t">The exponential wall</div>
+          <div class="fig-s">base blind requirement by ante · White Stake · log scale · boss blind = 2×</div>
+          <div class="plot" id="blindplot">
+            <svg viewBox="0 0 660 240" role="img" aria-label="Line chart of base blind chip requirement by ante, log scale, rising from 300 at ante 1 to 50,000 at ante 8">
+              <line class="gridline" x1="40" y1="155" x2="620" y2="155"></line>
+              <line class="gridline" x1="40" y1="80"  x2="620" y2="80"></line>
+              <line class="axl" x1="40" y1="205" x2="620" y2="205"></line>
+              <text class="axt" x="34" y="197" text-anchor="end">300</text>
+              <text class="axt" x="34" y="158" text-anchor="end">1k</text>
+              <text class="axt" x="34" y="83"  text-anchor="end">10k</text>
+              <text class="axt" x="34" y="31"  text-anchor="end">50k</text>
+              <text class="axt" x="40"  y="222" text-anchor="middle">A1</text>
+              <text class="axt" x="120" y="222" text-anchor="middle">A2</text>
+              <text class="axt" x="200" y="222" text-anchor="middle">A3</text>
+              <text class="axt" x="280" y="222" text-anchor="middle">A4</text>
+              <text class="axt" x="360" y="222" text-anchor="middle">A5</text>
+              <text class="axt" x="440" y="222" text-anchor="middle">A6</text>
+              <text class="axt" x="520" y="222" text-anchor="middle">A7</text>
+              <text class="axt" x="600" y="222" text-anchor="middle">A8</text>
+              <polyline points="40,194.2 120,162.3 200,132.4 280,102.6 360,76.9 440,57.4 520,39.2 600,27.6"
+                        fill="none" stroke="var(--text)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+              <g id="blindpts"></g>
+              <text class="annb" x="588" y="16" text-anchor="end">50,000 — ×167 in eight antes</text>
+            </svg>
+            <div class="tip" id="blindtip"></div>
+          </div>
+          <figcaption>Base requirements 300 → 800 → 2,000 → 5,000 → 11,000 → 20,000 → 35,000 → 50,000. The ante-8 boss demands 100,000 chips — the additive bonuses that carried ante 1 are a rounding error by then, which is why every winning run is a hunt for multiplicative scaling.</figcaption>
+        </div>
+      </figure>
+
+      <p>The property the whole project leans on: Balatro is <strong>fully deterministic given its seed</strong>. Every random event — shop contents, pack rolls, boss selection, card draws — pulls from a <em>named stream</em>. A stream's state is initialized by hashing its name with the run seed via the game's own string-hash:</p>
+      <div class="block">
+        <div class="eq">num ← ( (1.1239285023 / num) · byteᵢ · π + π·i ) mod 1</div>
+        <p>iterated over the string's bytes from the end (<code>pseudohash</code>). Each draw advances the stream — <code>s ← |round₁₃((2.134453429141 + 1.72431234·s) mod 1)|</code>, where <code>round₁₃</code> is a printf <code>%.13f</code> round-trip — averages it with the hashed seed, and feeds the result to LuaJIT's Tausworthe <code>math.random</code>.</p>
+      </div>
+      <p>All of this is IEEE-754 double arithmetic, which means it can be reproduced <em>bit for bit</em> in another language — same seed in, same shop out. That single fact is what makes a faithful external simulator possible at all.</p>
+    </section>
+
+    <section>
+      <h2>Rebuilding Balatro, bit for bit</h2>
+      <p>The real game is a LÖVE/Lua application with animations in the loop — fine for humans, hopeless for a training regime that needs billions of steps. So the environment is a from-scratch <strong>headless reimplementation in Rust</strong>: the full run loop, the scoring pipeline, the shop and pack economy, consumables, vouchers, tags, boss blinds, and all <strong>150 jokers</strong>, exposed to Python as a vectorized environment that steps thousands of games in parallel.</p>
+      <p>Fidelity was treated as the product, not a nice-to-have. Every ported behavior cites the exact line of game source it mirrors; Lua's evaluation order and floating-point quirks (including that <code>%.13f</code> round-trip in the RNG) are preserved verbatim. The RNG layer was verified bit-exact against test vectors generated by a pinned, game-era LuaJIT build — a detail that mattered immediately, since the system LuaJIT on the development machine produces <em>different</em> random streams. Scoring, shop rolls, and joker triggers are all held to oracle vectors the same way: <strong>294 tests</strong> stand between the simulator and quiet drift.</p>
+      <p>Passing your own tests is not the same as matching the game, though. The final gate is a cross-validation harness that plays the <em>real</em> Balatro (via the balatrobot mod) and the simulator in lockstep on the same seed, diffing the <strong>entire game state after every single action</strong> — every card, every joker, every dollar. Roughly 1,300 live-verified steps across seeded runs, three driving policies, and all eight antes ended with zero unexplained divergences. Getting there surfaced four real simulator bugs the unit tests could never have caught:</p>
+      <ul class="dash">
+        <li><strong>The Red Deck gives 4 discards, not 3.</strong> The deck's "+1 discard" applies to a base the code had wrong — an error that directly shaped every training episode, found only by diffing live state.</li>
+        <li><strong>End-of-round cards return to the deck's front,</strong> not its back — a draw-order difference that compounds over a run.</li>
+        <li><strong>Card debuffs clear the moment a blind is defeated,</strong> not at round end.</li>
+        <li><strong>Rounds survived by Mr. Bones pay no blind reward</strong> — the sim was paying out on a technicality the game doesn't honor.</li>
+      </ul>
+      <p>The harness also caught one discrepancy that turned out to be a bug in the game's own modding-framework beta rather than in the simulator — documented and normalized, not ported.</p>
+    </section>
+
+    <section>
+      <h2>Four billion hands</h2>
+      <p>The agent observes the game as <strong>entity tokens</strong>: one token per hand card (38 features — rank, suit, enhancement, edition, seal, debuff state), per joker, per consumable, per shop slot, plus the blind and a global state vector — with head-room reserved in every vocabulary so the encoding never has to break. A ~<strong>1.1M-parameter transformer</strong> attends over these tokens and acts through a composite, fully <strong>masked</strong> action space: a 25-way action-type head (play, discard, buy, sell, use, reroll, skip, cash out…) followed by conditional parameter heads, including an autoregressive pointer that selects cards from the hand one at a time until it emits STOP. Illegal choices are masked to zero probability, and only the heads the chosen type actually consumes are sampled.</p>
+      <p>Training is PPO, with the interesting work in the schedule rather than the algorithm:</p>
+      <ul class="dash">
+        <li><strong>Ante-ladder curriculum</strong> — episodes first end at ante 1, then 2, 3, 5, 8; the agent is promoted each time it clears a 70% win rate on held-out seeds, so it always trains at the frontier of what it can do rather than drowning in eight-ante failures.</li>
+        <li><strong>Snapshot backward curriculum</strong> — a pool of mid-run save-states lets a fraction of episodes begin at ante 4 with a real economy already built (each restored future independently re-randomized, so memorization is impossible), giving late-game states training coverage they'd otherwise rarely earn. The fraction anneals to zero so the final regime is pure fresh starts.</li>
+        <li><strong>Reward annealing</strong> — a dense per-blind shaping signal gets the policy off the ground, then is annealed away (β → 0.1) so what's optimized at the end is essentially the only thing that matters: winning the run.</li>
+        <li><strong>Throughput engineering</strong> — bf16-autocast updates over fp32 master weights, <code>torch.compile</code>, and a GPU-resident rollout buffer, every toggle gated by bit-identical A/B tests against the plain trainer. ~10k env-steps/s on a desktop RTX 4070; ~48k on the rented 2×RTX-5090 box that ran the main schedule.</li>
+      </ul>
+      <p>The full schedule was <strong>4 billion environment steps</strong>, with a second seed trained from the same fork as a confirmation run — it matched the main run's learning curve at every checkpoint. A live A/B settled a config question mid-flight (2 PPO epochs beat 4, per step <em>and</em> per wall-clock hour). Certification at the end was deliberately boring: four late checkpoints, evaluated greedily on ~8,000 held-out seeds each, all landed between 70.7% and 71.1% — converged, not lucky.</p>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Milestone</th><th>Full-run (ante 8) win rate</th></tr>
+          <tr><td>Prior published RL results</td><td>no consistent full-run wins</td></tr>
+          <tr><td>Mid-curriculum (2.2B steps)</td><td>64–68%</td></tr>
+          <tr><td><strong>Certified checkpoint (4.0B steps)</strong></td><td><strong>71.0%</strong> over ~8,000 held-out seeds, greedy</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Playing the real game</h2>
+      <p>A policy that wins in your own simulator has proven exactly one thing: it can win in your simulator. The closing demonstration removes that asterisk. A bridge drives the actual game — the policy picks an action, the bridge executes it in real Balatro, and the simulator steps in lockstep, with the full-state diff from the cross-validation harness running after <em>every</em> action.</p>
+      <figure>
+        <div class="figpanel img">
+          <img src="demo_win.webp" alt="Balatro victory screen: the boss blind of ante 8 defeated with a score of 156,340 against a requirement of 100,000" width="1200" height="675"/>
+        </div>
+        <figcaption>The live run, seed PQD3RI3I: the policy beat real Balatro across all eight antes — 223 actions, the Amber Acorn boss closed out at 156,340 chips against the 100,000 requirement, $99 in the bank — with zero divergences between predicted and actual game state at every step.</figcaption>
+      </figure>
+      <p>Watching it play is instructive. Each decision is a single forward pass — the 1.1M-parameter model is so small that inference is effectively free next to the game's animations. It plays the whole surface of the game: choosing which blinds to skip for tags, steering discards toward the hand types its jokers pay for, working the shop with sells and rerolls, and visibly playing the <em>economy</em> — the $99 it finished with is a policy that learned to sit above the interest cap and let compounding do quiet work across the run.</p>
+      <p>The lockstep run also earned its keep as an instrument: the only issues it surfaced were in the driving harness, not the models — the real game pays a stale dollar amount if "cash out" is pressed mid-animation, and the mod's use/sell commands silently no-op outside certain phases. Both are now handled, and the sim's model of the game stands unfalsified at every step it has ever been tested on.</p>
+    </section>
+
+    <section>
+      <h2>Coda</h2>
+      <p>The bet that paid off was putting the engineering rigor into the <em>environment</em> rather than the model. A 1.1M-parameter policy is modest by any standard; what it had that prior attempts didn't was four billion hands of an environment faithful enough that nothing learned there broke on contact with reality — zero divergences is not a rounding of "few," it is the number.</p>
+      <p>The natural extensions are all open: a larger model fine-tuned from the certified checkpoint, search on top of the policy (the simulator makes expectimax over shop outcomes cheap), and the harder deck-and-stake combinations beyond White Stake. The floor they'd build on — a verified, vectorized, bit-exact Balatro — is the part that was hard to get right, and it's done.</p>
+      <p class="tags">Rust · Python · PyTorch · Reinforcement Learning · PPO</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>© 2025 Jahan Kazimi</span>
+    <span><a href="https://github.com/jahankazimi078/balatroagent" target="_blank" rel="noopener">Source on GitHub</a></span>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var data = [
+      { a: 1, v: "300",    x: 40,  y: 194.2 },
+      { a: 2, v: "800",    x: 120, y: 162.3 },
+      { a: 3, v: "2,000",  x: 200, y: 132.4 },
+      { a: 4, v: "5,000",  x: 280, y: 102.6 },
+      { a: 5, v: "11,000", x: 360, y: 76.9 },
+      { a: 6, v: "20,000", x: 440, y: 57.4 },
+      { a: 7, v: "35,000", x: 520, y: 39.2 },
+      { a: 8, v: "50,000", x: 600, y: 27.6 }
+    ];
+    var svgNS = "http://www.w3.org/2000/svg";
+    var g = document.getElementById("blindpts");
+    var plot = document.getElementById("blindplot");
+    var tip = document.getElementById("blindtip");
+    var svg = plot.querySelector("svg");
+    data.forEach(function (d, i) {
+      var dot = document.createElementNS(svgNS, "circle");
+      dot.setAttribute("cx", d.x); dot.setAttribute("cy", d.y); dot.setAttribute("r", i === data.length - 1 ? 4.5 : 3);
+      dot.setAttribute("fill", i === data.length - 1 ? "var(--text)" : "var(--panel)");
+      dot.setAttribute("stroke", "var(--text)"); dot.setAttribute("stroke-width", "2");
+      var hit = document.createElementNS(svgNS, "circle");
+      hit.setAttribute("cx", d.x); hit.setAttribute("cy", d.y); hit.setAttribute("r", 14);
+      hit.setAttribute("fill", "transparent"); hit.style.cursor = "default";
+      hit.addEventListener("mouseenter", function () {
+        var box = plot.getBoundingClientRect();
+        var sbox = svg.getBoundingClientRect();
+        var sx = sbox.width / 660, sy = sbox.height / 240;
+        tip.textContent = "Ante " + d.a + " · base " + d.v + " · boss " + (d.a === 8 ? "100,000" : "2×");
+        tip.style.left = (sbox.left - box.left + d.x * sx) + "px";
+        tip.style.top = (sbox.top - box.top + d.y * sy) + "px";
+        tip.classList.add("on");
+      });
+      hit.addEventListener("mouseleave", function () { tip.classList.remove("on"); });
+      g.appendChild(dot); g.appendChild(hit);
+    });
+  })();
+</script>
+
+</body>
+</html>
