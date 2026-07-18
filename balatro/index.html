@@ -113,21 +113,6 @@
   .titleblock { margin-top: 3.5rem; }
   .titleblock .standfirst { color: var(--muted); margin-top: 0.75rem; }
 
-  /* Stat row */
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    margin: 2rem 0 0;
-  }
-  .stats > div { padding: 1rem 1rem 1rem 0; }
-  .stats .n { color: var(--text); font-weight: 700; font-size: 1.25rem; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-  .stats .k { font-size: 0.75rem; color: var(--faint); margin-top: 0.15rem; }
-  @media (max-width: 560px) {
-    .stats { grid-template-columns: 1fr 1fr; }
-  }
-
   /* Code + equation blocks */
   code {
     font-family: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -223,17 +208,10 @@
       <span class="meta">Project report · July 2026</span>
       <h1>Training a Balatro agent that works in the real game</h1>
       <p class="standfirst">I built a seed-faithful Balatro simulator in Rust, trained a 1.1M-parameter transformer with PPO, and checked every live action against the simulator before calling the project finished.</p>
-
-      <div class="stats" role="list" aria-label="Headline results">
-        <div role="listitem"><div class="n">71.0%</div><div class="k">certified win rate</div></div>
-        <div role="listitem"><div class="n">4B</div><div class="k">environment steps</div></div>
-        <div role="listitem"><div class="n">150</div><div class="k">joker implementations</div></div>
-        <div role="listitem"><div class="n">0</div><div class="k">unexplained live divergences</div></div>
-      </div>
     </div>
 
     <section>
-      <p>I started this project with a stricter goal than “make an agent win in a simulator.” I wanted the same policy to control my copy of Balatro, while the simulator predicted the real game state after every decision. That made environment fidelity the central engineering problem, not a cleanup task at the end.</p>
+      <p>I wanted to build a bot that could actually play Balatro. It needed to make its own decisions, control the real game, and finish a complete run—not just win inside a training simulator.</p>
       <p>The final policy wins <strong>71.0%</strong> of complete Red Deck runs on White Stake across roughly 8,000 held-out seeds. Four late checkpoints all scored between 70.7% and 71.1%, which gave me confidence that the result was stable. I then connected the certified checkpoint to the real game: it won a full run in 223 actions, while the lockstep validator found <strong>no unexplained state differences</strong>.</p>
     </section>
 
