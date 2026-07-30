@@ -151,7 +151,8 @@
     padding: 1.1rem 1.25rem 1rem;
   }
   .figpanel.img { padding: 0; overflow: hidden; }
-  .figpanel.img img { display: block; width: 100%; height: auto; }
+  .figpanel.img img,
+  .figpanel.img video { display: block; width: 100%; height: auto; background: #000; }
   .fig-t { font-size: 0.875rem; font-weight: 600; color: var(--text); }
   .fig-s { font-size: 0.75rem; color: var(--faint); margin-bottom: 1rem; }
   figcaption { font-size: 0.8125rem; color: var(--faint); margin-top: 0.75rem; line-height: 1.6; }
@@ -311,9 +312,12 @@
       <p>A strong simulator result does not guarantee that a policy will transfer. For the final test, I ran the certified checkpoint through the same bridge used for cross-validation. The policy read the simulator's encoded state, selected an action, and sent it to the real game. Both sides advanced together, and the validator compared their complete states after every action.</p>
       <figure>
         <div class="figpanel img">
-          <img src="demo_win.webp" alt="Balatro victory screen: the boss blind of ante 8 defeated with a score of 156,340 against a requirement of 100,000" width="1200" height="675"/>
+          <video src="balatrodemo.mp4" poster="demo_win.webp" controls preload="none" playsinline width="1280" height="720"
+                 aria-label="Screen recording of the certified policy playing a complete Balatro run from ante 1 through the ante-8 boss blind">
+            Your browser cannot play embedded video. <a href="balatrodemo.mp4">Download the run recording (MP4, 39&nbsp;MB)</a>.
+          </video>
         </div>
-        <figcaption>Live run PQD3RI3I: the policy defeated Amber Acorn at the end of ante 8 with 156,340 chips against a 100,000-chip requirement. It completed the run in 223 actions with $99 remaining and no unexplained simulator–game divergence.</figcaption>
+        <figcaption>Live run PQD3RI3I, recorded end to end (10:31). The policy defeated Amber Acorn at the end of ante 8 with 156,340 chips against a 100,000-chip requirement. It completed the run in 223 actions with $99 remaining and no unexplained simulator–game divergence.</figcaption>
       </figure>
       <p>The policy used the full decision space: it skipped blinds for tags, chose cards to play and discard, bought and sold items, rerolled shops, and managed its money. Inference was a single forward pass, so the model added negligible delay beside the game's animations.</p>
       <p>The run also improved the bridge itself. I found that cashing out during an animation could read a stale dollar value, and that balatrobot's use and sell commands silently did nothing outside specific game phases. I added waits and phase-aware masks for both cases. Neither issue required changing the policy or simulator.</p>
