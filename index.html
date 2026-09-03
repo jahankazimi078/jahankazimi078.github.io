@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Jahan Kazimi</title>
+  <meta name="description" content="Jahan Kazimi, Statistics & Data Science student at UCLA building ML systems, RL agents, and data products."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -12,15 +13,19 @@
 
     :root {
       --bg: #0a0a0a;
+      --surface: #111111;
+      --surface-2: #171717;
       --text: #ededed;
       --body: #d4d4d4;
       --muted: #a1a1a1;
       --faint: #737373;
       --border: #262626;
+      --border-hover: #3a3a3a;
       --underline: rgba(255, 255, 255, 0.3);
+      --radius: 10px;
     }
 
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
 
     body {
       background: var(--bg);
@@ -32,221 +37,473 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    a { color: var(--text); text-decoration: underline; text-decoration-color: var(--underline); text-underline-offset: 3px; transition: text-decoration-color 0.15s; }
+    a { color: var(--text); text-decoration: underline; text-decoration-color: var(--underline); text-underline-offset: 3px; transition: text-decoration-color 0.15s, color 0.15s, border-color 0.15s, background 0.15s; }
     a:hover { text-decoration-color: var(--text); }
-    a:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 2px; }
+    a:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 4px; }
 
-    .wrap {
-      max-width: 42rem;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
+    .wrap { max-width: 60rem; margin: 0 auto; padding: 0 1.5rem; }
 
     /* ── HEADER ── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 2rem 0 1rem;
+    .site-header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(10, 10, 10, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
     }
-    header .name {
-      font-size: 0.9375rem;
-      font-weight: 700;
-      color: var(--text);
-      text-decoration: none;
+    .site-header .wrap {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 3.5rem;
     }
-    header nav { display: flex; gap: 1.25rem; }
-    header nav a {
-      font-size: 0.8125rem;
-      color: var(--muted);
-      text-decoration: none;
+    .brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; font-weight: 700; color: var(--text); }
+    .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
+    .site-header nav { display: flex; gap: 1.5rem; }
+    .site-header nav a { font-size: 0.8125rem; color: var(--muted); text-decoration: none; }
+    .site-header nav a:hover { color: var(--text); }
+
+    /* ── HERO ── */
+    .hero { padding: 6rem 0 5rem; display: grid; grid-template-columns: 1fr auto; gap: 3rem; align-items: center; }
+    .eyebrow { font-size: 0.8125rem; color: var(--faint); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 1rem; }
+    .hero h1 {
+      color: var(--text); font-weight: 700; letter-spacing: -0.03em;
+      font-size: clamp(2.25rem, 5vw, 3.5rem); line-height: 1.1; margin-bottom: 1.25rem;
     }
-    header nav a:hover { color: var(--text); }
+    .hero h1 span { color: var(--faint); }
+    .hero .lede { color: var(--muted); font-size: 1.0625rem; max-width: 34rem; margin-bottom: 2rem; }
+    .cta { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 1.1rem; border-radius: 999px;
+      font-size: 0.875rem; font-weight: 500; text-decoration: none;
+      border: 1px solid var(--border); color: var(--text); background: transparent;
+    }
+    .btn:hover { border-color: var(--border-hover); background: var(--surface-2); }
+    .btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .btn.primary:hover { background: #ffffff; border-color: #ffffff; }
+    .btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+    .avatar {
+      width: 160px; height: 160px; border-radius: 50%;
+      background: var(--surface-2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 2.5rem; color: var(--faint); user-select: none;
+    }
+
 
     /* ── SECTIONS ── */
-    section { margin: 3.5rem 0; }
-
-    h1, h2 {
-      color: var(--text);
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
-    h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
-    h2 { font-size: 1.25rem; margin: 2.5rem 0 1.25rem; }
+    section { margin-bottom: 5.5rem; }
+    .section-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.75rem; }
+    .section-head h2 { color: var(--text); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-head .idx { font-size: 0.8125rem; color: var(--faint); font-variant-numeric: tabular-nums; }
+    .section-head::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
     p { margin-bottom: 1.1rem; }
+    .prose { max-width: 42rem; color: var(--body); }
 
-    /* About intro w/ avatar */
-    .intro { display: flex; gap: 2rem; align-items: flex-start; }
-    .intro-text { flex: 1; }
-    .avatar {
-      width: 130px; height: 130px;
-      border-radius: 50%;
-      background: #171717;
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      font-weight: 600;
-      font-size: 2rem;
-      color: var(--faint);
-      user-select: none;
+    /* ── ABOUT ── */
+    .about { display: grid; grid-template-columns: 1.4fr 1fr; gap: 3rem; }
+    .about h3 { color: var(--text); font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.75rem; }
+    .edu-item { padding-left: 1rem; border-left: 1px solid var(--border); margin-bottom: 1.25rem; }
+    .edu-item .meta { display: block; font-size: 0.8125rem; color: var(--faint); }
+    .edu-item strong { color: var(--text); font-weight: 600; }
+    .edu-item p { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.875rem; }
+
+    /* ── SKILLS ── */
+    .skills { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .skill-group { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+    .skill-group h3 { color: var(--text); font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem; }
+    .pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .pill {
+      font-size: 0.75rem; color: var(--muted); background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.55rem; white-space: nowrap;
     }
 
-    /* Dash lists (rauchg style) */
-    ul.dash { list-style: none; }
-    ul.dash li {
-      position: relative;
-      padding-left: 1.4rem;
-      margin-bottom: 1rem;
+    /* ── PROJECTS ── */
+    .projects { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+    .card {
+      position: relative; display: flex; flex-direction: column; overflow: hidden;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      transition: transform 0.35s cubic-bezier(.2,.8,.2,1), border-color 0.25s, box-shadow 0.35s;
+      text-decoration: none; color: inherit;
     }
-    ul.dash li::before {
-      content: "–";
-      position: absolute;
-      left: 0;
-      color: var(--faint);
+    .card:hover, .card:focus-within { transform: translateY(-6px); border-color: var(--border-hover); box-shadow: 0 20px 40px -20px rgba(0,0,0,.8); }
+    .thumb { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.85); transition: transform 0.6s cubic-bezier(.2,.8,.2,1), filter 0.4s; }
+    .card:hover .thumb img, .card:focus-within .thumb img { transform: scale(1.06); filter: saturate(1); }
+    .thumb::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(17,17,17,.6), transparent 60%); pointer-events: none; }
+    .card .badge {
+      position: absolute; top: 0.75rem; right: 0.75rem; z-index: 2;
+      font-size: 0.7rem; color: var(--text); background: rgba(10,10,10,.75); backdrop-filter: blur(6px);
+      border: 1px solid var(--border-hover); border-radius: 999px; padding: 0.15rem 0.6rem; white-space: nowrap;
+    }
+    .badge { transition: opacity .2s; }
+    .card:hover .badge, .card:focus-within .badge { opacity: 0; }
+    .card-body { padding: 1.1rem 1.25rem 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+    .card h3 { color: var(--text); font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.01em; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .card h3 .arrow { color: var(--faint); font-weight: 400; transition: transform .3s, color .2s; }
+    .card:hover h3 .arrow, .card:focus-within h3 .arrow { transform: translate(3px,-3px); color: var(--text); }
+    .card .tagline { color: var(--muted); font-size: 0.875rem; margin: 0; }
+    .card .pills { margin-top: auto; }
+    .pill { transition: border-color .2s, color .2s; }
+    .card:hover .pill, .card:focus-within .pill { border-color: var(--border-hover); color: var(--body); }
+
+    /* hover detail overlay */
+    .detail {
+      position: absolute; inset: 0; z-index: 3; padding: 1.4rem 1.4rem 1.25rem;
+      background: rgba(10,10,10,.96); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; flex-direction: column; gap: 0.75rem;
+      opacity: 0; transform: translateY(12px); transition: opacity .3s ease, transform .35s cubic-bezier(.2,.8,.2,1);
+      pointer-events: none;
+    }
+    .card:hover .detail, .card:focus-within .detail { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .detail h4 { color: var(--text); font-size: 1rem; font-weight: 600; }
+    .detail p { color: var(--body); font-size: 0.8125rem; line-height: 1.55; margin: 0; overflow: auto; flex: 1; scrollbar-width: thin; scrollbar-color: var(--border-hover) transparent; }
+    .detail p strong { color: var(--text); }
+    .links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .links a {
+      font-size: 0.8125rem; color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;
+      border: 1px solid var(--border-hover); border-radius: 999px; padding: 0.3rem 0.8rem; transition: background .2s, border-color .2s, transform .2s;
+    }
+    .links a:hover { background: var(--surface-2); border-color: var(--muted); transform: translateY(-1px); }
+    .links a.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .links a.primary:hover { background: #fff; }
+    .links svg { width: 14px; height: 14px; fill: currentColor; }
+
+    .card.soon { border-style: dashed; justify-content: center; align-items: center; text-align: center; color: var(--faint); min-height: 100%; }
+    .card.soon h3 { color: var(--muted); justify-content: center; }
+    .card.soon:hover { transform: none; box-shadow: none; }
+    .card.soon .ring { width: 56px; height: 56px; border-radius: 50%; border: 1px dashed var(--faint); display: grid; place-items: center; margin-bottom: 1rem; font-size: 1.5rem; color: var(--faint); animation: spin 14s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (hover: none) {
+      .detail { position: static; opacity: 1; transform: none; pointer-events: auto; background: transparent; backdrop-filter: none; padding: 0 1.25rem 1.25rem; }
+      .detail h4 { display: none; }
     }
 
-    ul.dash li strong {
-      color: var(--text);
-      font-weight: 600;
+    /* ── ANIMATIONS ── */
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+    .hero > div > * { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
+    .hero .eyebrow { animation-delay: .05s; }
+    .hero h1 { animation-delay: .15s; }
+    .hero .lede { animation-delay: .28s; }
+    .hero .cta { animation-delay: .4s; }
+    .hero .avatar { animation: rise .8s cubic-bezier(.2,.8,.2,1) .3s both; }
+    .brand .dot { animation: pulse 2.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .5; transform: scale(.75);} }
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1); transition-delay: var(--d, 0s); }
+    .reveal.in { opacity: 1; transform: none; }
+    .site-header nav a { position: relative; }
+    .site-header nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 1px; background: var(--text); transform: scaleX(0); transform-origin: left; transition: transform .25s; }
+    .site-header nav a:hover::after, .site-header nav a.active::after { transform: scaleX(1); }
+    .site-header nav a.active { color: var(--text); }
+    .btn { transition: transform .2s, background .2s, border-color .2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .skill-group, .contact-list a, .edu-item { transition: border-color .2s, transform .25s; }
+    .skill-group:hover { border-color: var(--border-hover); transform: translateY(-3px); }
+    .contact-list a:hover { transform: translateX(4px); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
     }
-
-    .meta {
-      display: block;
-      font-size: 0.8125rem;
-      color: var(--faint);
-      margin-bottom: 0.15rem;
+    /* ── EXPERIENCE ── */
+    .timeline { list-style: none; border-left: 1px solid var(--border); margin-left: 0.4rem; }
+    .timeline > li { position: relative; padding: 0 0 2rem 1.75rem; }
+    .timeline > li:last-child { padding-bottom: 0; }
+    .timeline > li::before {
+      content: ""; position: absolute; left: -5px; top: 0.55rem;
+      width: 9px; height: 9px; border-radius: 50%; background: var(--bg); border: 1px solid var(--faint);
     }
+    .timeline .meta { display: block; font-size: 0.8125rem; color: var(--faint); font-variant-numeric: tabular-nums; }
+    .timeline .role { color: var(--text); font-weight: 600; }
+    .timeline .org { color: var(--muted); }
+    .timeline .bullets { list-style: none; margin: 0.5rem 0 0; max-width: 46rem; display: grid; gap: 0.35rem; }
+    .timeline .bullets li { position: relative; padding-left: 1rem; color: var(--muted); font-size: 0.875rem; }
+    .timeline .bullets li::before { content: "–"; position: absolute; left: 0; color: var(--faint); }
 
-    .tags {
-      display: block;
-      font-size: 0.75rem;
-      color: var(--faint);
-      letter-spacing: 0.02em;
-      margin-top: 0.35rem;
+    /* ── CONTACT ── */
+    .contact { display: grid; grid-template-columns: 1.4fr 1fr; gap: 3rem; align-items: start; }
+    .contact h3 { color: var(--text); font-size: 1.125rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .contact-list { list-style: none; display: grid; gap: 0.5rem; }
+    .contact-list a {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px;
+      text-decoration: none; background: var(--surface);
     }
+    .contact-list a:hover { border-color: var(--border-hover); }
+    .contact-list .k { font-size: 0.8125rem; color: var(--faint); }
+    .contact-list .v { color: var(--text); font-size: 0.875rem; }
 
-    /* Footer */
-    footer {
-      border-top: 1px solid var(--border);
-      margin-top: 4rem;
-      padding: 1.5rem 0 3rem;
-      font-size: 0.8125rem;
-      color: var(--faint);
-    }
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid var(--border); padding: 1.5rem 0 3rem; font-size: 0.8125rem; color: var(--faint); }
+    footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    footer a { color: var(--faint); text-decoration: none; }
+    footer a:hover { color: var(--text); }
 
-    @media (max-width: 560px) {
-      .intro { flex-direction: column-reverse; }
-      .avatar { width: 100px; height: 100px; font-size: 1.5rem; }
-      header nav { gap: 0.9rem; }
+    @media (max-width: 1000px) { .projects { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 800px) {
+      .hero { grid-template-columns: 1fr; padding-top: 4rem; }
+      .avatar { width: 110px; height: 110px; font-size: 1.75rem; order: -1; }
+      .about, .contact { grid-template-columns: 1fr; gap: 2rem; }
+      .skills { grid-template-columns: 1fr; }
+      .projects { grid-template-columns: 1fr; }
+      .site-header nav { gap: 1rem; }
     }
   </style>
 </head>
 <body>
 
-  <div class="wrap">
-
-    <header>
-      <a class="name" href="#">Jahan Kazimi</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="#"><span class="dot" aria-hidden="true"></span>Jahan Kazimi</a>
       <nav aria-label="Site sections">
         <a href="#about">About</a>
+        <a href="#skills">Skills</a>
         <a href="#projects">Projects</a>
-        <a href="#resume">Resume</a>
+        <a href="#experience">Experience</a>
         <a href="#contact">Contact</a>
       </nav>
-    </header>
+    </div>
+  </header>
 
-    <main>
+  <main class="wrap">
 
-      <section id="about">
-        <h1>About</h1>
-        <div class="intro">
-          <div class="intro-text">
-            <p>Hi, I'm Jahan — a Statistics &amp; Data Science student at the University of California, Los Angeles. I'm passionate about learning, building, and making an impact.</p>
-          </div>
-          <div class="avatar" aria-hidden="true">JK</div>
+    <!-- HERO -->
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Statistics &amp; Data Science · UCLA</div>
+        <h1>Hi, I'm Jahan.<br/><span>Data enthusiast.</span></h1>
+        <p class="lede">Student at the University of California, Los Angeles. I like problems that sit between statistics and engineering: training agents, optimizing models, and turning messy data into things people can actually use.</p>
+        <div class="cta">
+          <a class="btn primary" href="#projects">View projects</a>
+          <a class="btn" href="https://github.com/jahankazimi078" target="_blank" rel="noopener">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            GitHub
+          </a>
+          <a class="btn" href="https://www.linkedin.com/in/jahan-kazimi/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.6 1H2.4A1.4 1.4 0 001 2.4v11.2A1.4 1.4 0 002.4 15h11.2a1.4 1.4 0 001.4-1.4V2.4A1.4 1.4 0 0013.6 1zM5.2 12.9H3.1V6.4h2.1v6.5zM4.15 5.5a1.2 1.2 0 110-2.4 1.2 1.2 0 010 2.4zm8.75 7.4h-2.1V9.7c0-.8-.02-1.8-1.1-1.8s-1.27.85-1.27 1.74v3.26H6.35V6.4h2v.9h.03c.28-.53.96-1.1 1.98-1.1 2.12 0 2.5 1.4 2.5 3.2v3.5z"/></svg>
+            LinkedIn
+          </a>
+          <a class="btn" href="Jahan_Kazimi_Resume.pdf" download="Jahan_Kazimi_Resume.pdf">↓ Resume</a>
         </div>
+      </div>
+      <div class="avatar" aria-hidden="true">JK</div>
+    </div>
 
-        <h2>Experience</h2>
-        <ul class="dash">
-          <li>
-            <span class="meta">Jan 2026 – Apr 2026</span>
-            <strong>Data Science &amp; Machine Learning Intern</strong>, TVLIP — built and evaluated predictive models (LightGBM, logistic regression, gradient boosting) in Python on 1.2M+ records, running 240+ cross-validated experiments to raise macro F1 from 0.71 to 0.86, with error and segment-level analysis and SQL-based analytics reporting for technical and non-technical stakeholders.
-          </li>
-          <li>
-            <span class="meta">Jun 2025 – Sep 2025</span>
-            <strong>Data Science &amp; Analytics Intern</strong>, S&amp;F Services — built end-to-end Python and SQL data pipelines structuring 500K+ records, trained and evaluated multiclass classifiers (LightGBM, logistic regression), and translated statistical analysis into stakeholder-ready insights and dashboards.
-          </li>
-          <li>
-            <span class="meta">Jan 2025 – Jun 2025</span>
-            <strong>Mathematics &amp; Statistics Tutor</strong>, LAPC Center for Academic Success — tutored Calculus I–III, Linear Algebra, and Statistics one-on-one and in small groups, and led exam-season workshops and study groups.
-          </li>
+
+    <!-- ABOUT -->
+    <section id="about">
+      <div class="section-head reveal"><span class="idx">01</span><h2>About</h2></div>
+      <div class="about reveal">
+        <div class="prose">
+          <p>I'm a Statistics &amp; Data Science student at UCLA. Most of my work lives at the intersection of machine learning and systems: writing simulators in Rust, training policies with PPO, hand-optimizing ONNX graphs, and building end-to-end pipelines over millions of records.</p>
+          <p>I've interned as a data scientist twice, led a team at DataFest, and tutored calculus and statistics. I care about results that can be verified, like held-out seeds, confidence intervals, and equivalence-checked rewrites, not just numbers that look good.</p>
+        </div>
+        <div>
+          <h3>Education</h3>
+          <div class="edu-item">
+            <span class="meta">Sep 2025 – Jun 2027</span>
+            <strong>B.S., Statistics &amp; Data Science</strong>
+            <p>University of California, Los Angeles · GPA 3.86/4.0. Probability, mathematical statistics, statistical programming, linear regression.</p>
+          </div>
+          <div class="edu-item">
+            <span class="meta">Aug 2024 – Jun 2025</span>
+            <strong>Los Angeles Pierce College</strong>
+            <p>Dean's Honor List · GPA 4.0/4.0. Linear algebra, Calculus I–III, statistics, <span style="white-space:nowrap">C++</span>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills">
+      <div class="section-head reveal"><span class="idx">02</span><h2>Skills</h2></div>
+      <div class="skills">
+        <div class="skill-group reveal" style="--d:0.0s">
+          <h3>Languages</h3>
+          <div class="pills">
+            <span class="pill">Python</span><span class="pill">R</span><span class="pill">SQL</span><span class="pill">Rust</span><span class="pill">C++</span>
+          </div>
+        </div>
+        <div class="skill-group reveal" style="--d:0.1s">
+          <h3>ML &amp; Data</h3>
+          <div class="pills">
+            <span class="pill">Pandas</span><span class="pill">NumPy</span><span class="pill">Scikit-learn</span><span class="pill">LightGBM</span><span class="pill">PyTorch</span><span class="pill">ONNX</span><span class="pill">Tidyverse</span><span class="pill">ggplot2</span>
+          </div>
+        </div>
+        <div class="skill-group reveal" style="--d:0.2s">
+          <h3>Statistics &amp; Modeling</h3>
+          <div class="pills">
+            <span class="pill">Regression</span><span class="pill">Hypothesis testing</span><span class="pill">A/B testing</span><span class="pill">Cross-validation</span><span class="pill">Model calibration</span><span class="pill">Experimentation</span><span class="pill">Data visualization</span>
+          </div>
+        </div>
+        <div class="skill-group reveal" style="--d:0.3s">
+          <h3>Tools</h3>
+          <div class="pills">
+            <span class="pill">MySQL</span><span class="pill">Streamlit</span><span class="pill">Shiny</span><span class="pill">Excel</span><span class="pill">Git</span><span class="pill">GitHub</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects">
+      <div class="section-head reveal"><span class="idx">03</span><h2>Projects</h2></div>
+      <div class="projects">
+        <article class="card reveal" style="--d:0.00s" tabindex="0">
+          <div class="thumb"><img src="assets/balatro.webp" alt="Balatro key art" loading="lazy" width="960" height="540"/></div>
+          <span class="badge">71.0% win rate · live-verified</span>
+          <div class="card-body">
+            <h3>Balatro RL Agent<span class="arrow" aria-hidden="true">↗</span></h3>
+            <p class="tagline">A PPO-trained transformer that beats Balatro, backed by a seed-faithful Rust simulator.</p>
+            <div class="pills"><span class="pill">Rust</span><span class="pill">Python</span><span class="pill">PyTorch</span><span class="pill">PPO</span><span class="pill">RL</span></div>
+          </div>
+          <div class="detail">
+            <h4>Balatro RL Agent</h4>
+            <p>Seed-faithful Balatro simulator in Rust (matching RNG, full scoring and economy, all 150 jokers), exposed to Python as a vectorized env. Trained a ~1.1M-param transformer with PPO for 4B steps. The certified policy won <strong>71.0% of complete ante-8 runs</strong> over ~8,000 held-out seeds, then beat the real game in a 223-action run with a lockstep validator reporting zero unexplained state differences.</p>
+            <div class="links"><a class="primary" href="balatro/">Read report</a><a href="https://github.com/jahankazimi078/balatroagent" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Code</a></div>
+          </div>
+        </article>
+        <article class="card reveal" style="--d:0.08s" tabindex="0">
+          <div class="thumb"><img src="assets/neurogolf.svg" alt="Abstract grid-transform illustration for NeuroGolf" loading="lazy" width="960" height="540"/></div>
+          <span class="badge">Kaggle Bronze · 297 / 3,061</span>
+          <div class="card-body">
+            <h3>NeuroGolf 2026<span class="arrow" aria-hidden="true">↗</span></h3>
+            <p class="tagline">Code golf for neural networks: the smallest exact ONNX model for all 400 ARC-style puzzles.</p>
+            <div class="pills"><span class="pill">Python</span><span class="pill">ONNX</span><span class="pill">NumPy</span><span class="pill">Graph Optimization</span></div>
+          </div>
+          <div class="detail">
+            <h4>NeuroGolf 2026</h4>
+            <p>Solved all 400 ARC-style puzzles by hand-building the smallest exact ONNX model for each; score shrinks logarithmically with model size. 113 rule-family builders plus equivalence-gated graph optimizers (constant folding, dead-node elimination, dtype demotion, bit-plane packing), every rewrite proven output-identical, with AI coding agents used to accelerate exploration. 103 of 400 final models are a single operator; three cost zero bytes. Final: 7,398.77 points.</p>
+            <div class="links"><a class="primary" href="neurogolf/">Read report</a><a href="https://github.com/jahankazimi078/2026NeuroGolfChampionship" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Code</a></div>
+          </div>
+        </article>
+        <article class="card reveal" style="--d:0.16s" tabindex="0">
+          <div class="thumb"><img src="assets/nyc311.webp" alt="NYC 311 Analyzer site hero" loading="lazy" width="960" height="540"/></div>
+          <span class="badge">Interactive site</span>
+          <div class="card-body">
+            <h3>NYC 311 Analyzer<span class="arrow" aria-hidden="true">↗</span></h3>
+            <p class="tagline">An end-to-end study of ~4.8M New York City 311 service requests, published as a static site.</p>
+            <div class="pills"><span class="pill">Python</span><span class="pill">Scikit-learn</span><span class="pill">SQLite</span><span class="pill">Parquet</span><span class="pill">NLP</span></div>
+          </div>
+          <div class="detail">
+            <h4>NYC 311 Analyzer</h4>
+            <p>End-to-end analytics pipeline (SQLite + yearly Parquet) over ~4.8 million 311 requests, with a rule-based NLP taxonomy turning free-text complaints into standardized issue families and outcomes. Trained resolution-time classifiers on 200K+ complaints (HistGradientBoosting, logistic regression) with error slices and borough-level fairness metrics; the slowest borough averaged 27% longer resolution times than the citywide benchmark. Published as an interactive static site.</p>
+            <div class="links"><a class="primary" href="https://jahankazimi078.github.io/311Analyzer/" target="_blank" rel="noopener">Open site</a></div>
+          </div>
+        </article>
+        <article class="card reveal" style="--d:0.24s" tabindex="0">
+          <div class="thumb"><img src="assets/nba.webp" alt="NBA Shot Quality dashboard" loading="lazy" width="960" height="540"/></div>
+          <span class="badge">Dashboard</span>
+          <div class="card-body">
+            <h3>NBA Shot Quality<span class="arrow" aria-hidden="true">↗</span></h3>
+            <p class="tagline">Expected points for every NBA shot, turned into player skill with confidence intervals.</p>
+            <div class="pills"><span class="pill">Python</span><span class="pill">LightGBM</span><span class="pill">Causal Inference</span><span class="pill">Sports Analytics</span></div>
+          </div>
+          <div class="detail">
+            <h4>NBA Shot Quality</h4>
+            <p>Shot-quality pipeline over 654,609 field-goal attempts across three seasons, producing per-shot expected points and 983 player-season shooting profiles. A LightGBM xPoints model with game-grouped validation and out-of-fold scoring showed Points Over Expected holds a 0.58 year-over-year correlation. Includes shot-diet archetypes, RAPM impact, and a coaching-change study, all in a public interactive dashboard.</p>
+            <div class="links"><a class="primary" href="https://jahankazimi078.github.io/nba-shot-quality/" target="_blank" rel="noopener">Open dashboard</a></div>
+          </div>
+        </article>
+        <article class="card reveal" style="--d:0.32s" tabindex="0">
+          <div class="thumb"><img src="assets/ucla.webp" alt="UCLA logo" loading="lazy" width="960" height="540"/></div>
+          <span class="badge">Team Lead</span>
+          <div class="card-body">
+            <h3>UCLA ASA DataFest 2026<span class="arrow" aria-hidden="true">↗</span></h3>
+            <p class="tagline">Led a 4-person team quantifying care disparities across 7.6M+ hospital encounters.</p>
+            <div class="pills"><span class="pill">Python</span><span class="pill">Statistics</span><span class="pill">Health Equity</span><span class="pill">Dashboards</span></div>
+          </div>
+          <div class="detail">
+            <h4>UCLA ASA DataFest 2026</h4>
+            <p>Led a 4-person team analyzing 7.6M+ hospital encounters to quantify disparities in chronic-disease patient journeys, anchored on a 25,668-patient Type 2 Diabetes cohort and replicated across four more conditions. Built a reproducible Python pipeline with bootstrap CIs and nested logistic-regression mediation models; minoritized patients entered care through the ED at 1.9 to 3.3x the rate of White patients after adjusting for social determinants and geography.</p>
+            <div class="links"></div>
+          </div>
+        </article>
+        <article class="card soon reveal" style="--d:0.40s">
+          <div class="card-body">
+            <div class="ring" aria-hidden="true">+</div>
+            <h3>More coming soon</h3>
+            <p class="tagline">Currently working on new things. Check back soon.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE -->
+    <section id="experience">
+      <div class="section-head reveal"><span class="idx">04</span><h2>Experience</h2></div>
+      <ul class="timeline reveal">
+        <li>
+          <span class="meta">Jan 2026 – Apr 2026</span>
+          <span class="role">Data Science &amp; Machine Learning Intern</span> <span class="org">· TVLIP</span>
+          <ul class="bullets">
+            <li>Built and evaluated predictive models (LightGBM, logistic regression, gradient boosting) in Python across 1.2M+ records, running 240+ cross-validated experiments that raised macro F1 from 0.71 to 0.86.</li>
+            <li>Found that recent activity and engagement history were the strongest predictors, while thin-history records drove nearly a third of errors; rebuilt features around those gaps and improved the weakest segment by 12%.</li>
+            <li>Ran error analysis (confusion matrices, calibration curves, cohort slices) and built SQL-backed reporting that separated high- and low-confidence predictions, cutting unnecessary manual review by an estimated 18%.</li>
+          </ul>
+        </li>
+        <li>
+          <span class="meta">Jun 2025 – Sep 2025</span>
+          <span class="role">Data Science &amp; Analytics Intern</span> <span class="org">· S&amp;F Services</span>
+          <ul class="bullets">
+            <li>Built end-to-end Python and SQL pipelines consolidating 500K+ records from multiple sources into query-ready tables, cutting recurring data-prep time 35% and saving analysts roughly 12 hours a month.</li>
+            <li>Traced reporting discrepancies to duplicates and inconsistent categories; standardized a normalized MySQL schema with foreign-key and ENUM constraints, reducing recurring data-quality issues by 25%.</li>
+            <li>Trained multiclass classifiers (LightGBM, logistic regression) with 5-fold cross-validation to 0.83 macro F1, and delivered interactive dashboards for the metrics stakeholders asked for most.</li>
+          </ul>
+        </li>
+        <li>
+          <span class="meta">Jan 2025 – Jun 2025</span>
+          <span class="role">Mathematics &amp; Statistics Tutor</span> <span class="org">· LAPC Center for Academic Success</span>
+          <ul class="bullets">
+            <li>Tutored Calculus I–III, Linear Algebra, and Statistics one-on-one and in small groups, in person and online, and led exam-season workshops built around the topics students struggled with most.</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+      <div class="section-head reveal"><span class="idx">05</span><h2>Contact</h2></div>
+      <div class="contact reveal">
+        <div class="prose">
+          <h3>Let's connect</h3>
+          <p>Email is the fastest way to reach me.</p>
+        </div>
+        <ul class="contact-list">
+          <li><a href="mailto:jahankazimi078@ucla.edu"><span class="k">Email</span><span class="v">jahankazimi078@ucla.edu</span></a></li>
+          <li><a href="https://www.linkedin.com/in/jahan-kazimi/" target="_blank" rel="noopener"><span class="k">LinkedIn</span><span class="v">jahan-kazimi</span></a></li>
+          <li><a href="https://github.com/jahankazimi078" target="_blank" rel="noopener"><span class="k">GitHub</span><span class="v">jahankazimi078</span></a></li>
         </ul>
+      </div>
+    </section>
 
-        <h2>Education</h2>
-        <ul class="dash">
-          <li>
-            <span class="meta">2025 – Expected Spring 2027</span>
-            <strong>B.S., Statistics &amp; Data Science</strong>, University of California, Los Angeles — GPA 3.86/4.0. Coursework in probability, mathematical statistics, statistical programming, and linear regression.
-          </li>
-          <li>
-            <span class="meta">2024 – 2025</span>
-            <strong>Los Angeles Pierce College</strong> — Dean's Honor List, GPA 4.0/4.0. Coursework in linear algebra, Calculus I–III, statistics, and <span style="white-space:nowrap">C++</span>.
-          </li>
-        </ul>
-      </section>
+  </main>
 
-      <section id="projects">
-        <h2>Projects</h2>
-        <ul class="dash">
-          <li>
-            <span class="meta">Kaggle · Bronze medal — 297th of 3,061 teams (top 10%)</span>
-            <strong><a href="https://github.com/jahankazimi078/2026NeuroGolfChampionship" target="_blank" rel="noopener">NeuroGolf 2026</a></strong> — "code golf for neural networks": solved all 400 ARC-style grid-reasoning puzzles by hand-constructing the smallest exact ONNX model for each, where a solved task's score shrinks logarithmically with model size. Built a library of 113 rule-family builders (tiling, flood fill, ray casting, symmetry repair) plus equivalence-gated graph optimizers — constant folding, dead-node elimination, dtype demotion, bit-plane packing — every rewrite proven output-identical before shipping. 103 of the final 400 models are a single operator; three cost zero bytes and score the 25-point maximum. Final: 7,398.77 points. Read the full <a href="neurogolf/">project report</a>.
-            <span class="tags">Python · ONNX · NumPy · Graph Optimization · Kaggle</span>
-          </li>
-          <li>
-            <strong><a href="https://jahankazimi078.github.io/311Analyzer/" target="_blank" rel="noopener">NYC 311 Analyzer</a></strong> — an end-to-end study of ~4.8 million New York City 311 service requests (2025–2026): cleaning, NLP enrichment, geospatial burden mapping, agency scorecards, a neighborhood equity audit, and resolution-time forecasting — presented as an interactive static site.
-            <span class="tags">Python · Pandas · Scikit-Learn · GeoPandas · NLP · Geospatial Analysis</span>
-          </li>
-          <li>
-            <strong><a href="https://jahankazimi078.github.io/nba-shot-quality/" target="_blank" rel="noopener">NBA Shot Quality</a></strong> — a shot-quality model estimating the expected points of every NBA field-goal attempt, turned into player-level shot-making skill (POE) with bootstrap confidence intervals, shot-diet archetypes, RAPM on/off impact, and a difference-in-differences study of mid-season coaching changes — all explorable in a browser dashboard.
-            <span class="tags">Python · LightGBM · Machine Learning · Causal Inference · Sports Analytics</span>
-          </li>
-          <li>
-            <strong>UCLA ASA DataFest 2026 — Team Lead</strong> — led a 4-person team analyzing 7.6M+ hospital encounters to quantify race-based disparities in chronic-disease patient journeys, anchored on a 25,668-patient Type 2 Diabetes cohort. Engineered a reproducible Python pipeline with bootstrap confidence intervals and logistic-regression mediation models, and built dashboards surfacing entry-point patterns and equity gaps.
-            <span class="tags">Python · Statistics · Health Equity · Dashboards</span>
-          </li>
-          <li>
-            <span class="meta">2026 · 71.0% full-run win rate, live-verified</span>
-            <strong><a href="https://github.com/jahankazimi078/balatroagent" target="_blank" rel="noopener">Balatro RL Agent</a></strong> — built a seed-faithful Balatro simulator in Rust, including a bit-exact RNG, the complete scoring and economy systems, and all 150 jokers. Exposed it to Python as a vectorized environment and trained a ~1.1M-parameter transformer with PPO for 4 billion environment steps. The certified policy won <strong>71.0% of complete ante-8 runs</strong> over ~8,000 held-out seeds, then controlled the real game through a 223-action victory while a lockstep validator found no unexplained state differences. Read the full <a href="balatro/">project report</a>.
-            <span class="tags">Rust · Python · PyTorch · Reinforcement Learning · PPO</span>
-          </li>
-          <li>
-            <strong>More coming soon</strong> — currently working on new things; check back here soon.
-          </li>
-        </ul>
-      </section>
+  <footer>
+    <div class="wrap">
+      <span>© 2025 Jahan Kazimi</span>
+      <span><a href="https://github.com/jahankazimi078/jahankazimi078.github.io" target="_blank" rel="noopener">Source on GitHub</a></span>
+    </div>
+  </footer>
 
-      <section id="resume">
-        <h2>Resume</h2>
-        <p><a href="Jahan_Kazimi_Resume.pdf" download="Jahan_Kazimi_Resume.pdf">↓ Download Resume</a></p>
-      </section>
+  <script>
+    (function () {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
 
-      <section id="contact">
-        <h2>Contact</h2>
-        <ul class="dash">
-          <li><strong>Email (UCLA)</strong> — <a href="mailto:jahankazimi078@ucla.edu">jahankazimi078@ucla.edu</a></li>
-          <li><strong>Email (Personal)</strong> — <a href="mailto:jahankazimi078@gmail.com">jahankazimi078@gmail.com</a></li>
-          <li><strong>LinkedIn</strong> — <a href="https://www.linkedin.com/in/jahan-kazimi/" target="_blank" rel="noopener">jahan-kazimi</a></li>
-          <li><strong>GitHub</strong> — <a href="https://github.com/jahankazimi078" target="_blank" rel="noopener">jahankazimi078</a></li>
-        </ul>
-      </section>
-
-    </main>
-
-    <footer>© 2025 Jahan Kazimi</footer>
-
-  </div>
+      var links = document.querySelectorAll('.site-header nav a');
+      var secs = Array.prototype.map.call(links, function (a) { return document.querySelector(a.getAttribute('href')); });
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          links.forEach(function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id); });
+        });
+      }, { rootMargin: '-40% 0px -55% 0px' });
+      secs.forEach(function (s) { if (s) spy.observe(s); });
+    })();
+  </script>
 
 </body>
 </html>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540">
+  <rect width="960" height="540" fill="#0d0d0d"/>
+  <g fill="none" stroke="#1f1f1f" stroke-width="1">
+    <path d="M0 90H960M0 180H960M0 270H960M0 360H960M0 450H960M90 0V540M180 0V540M270 0V540M360 0V540M450 0V540M540 0V540M630 0V540M720 0V540M810 0V540M900 0V540"/>
+  </g>
+  <g>
+    <rect x="130" y="130" width="70" height="70" fill="#ededed" rx="4"/>
+    <rect x="220" y="130" width="70" height="70" fill="#737373" rx="4"/>
+    <rect x="310" y="130" width="70" height="70" fill="#3a3a3a" rx="4"/>
+    <rect x="130" y="220" width="70" height="70" fill="#3a3a3a" rx="4"/>
+    <rect x="220" y="220" width="70" height="70" fill="#ededed" rx="4"/>
+    <rect x="310" y="220" width="70" height="70" fill="#737373" rx="4"/>
+    <rect x="130" y="310" width="70" height="70" fill="#737373" rx="4"/>
+    <rect x="220" y="310" width="70" height="70" fill="#3a3a3a" rx="4"/>
+    <rect x="310" y="310" width="70" height="70" fill="#ededed" rx="4"/>
+  </g>
+  <path d="M430 255h90" stroke="#a1a1a1" stroke-width="6" stroke-linecap="round"/>
+  <path d="M505 235l25 20-25 20" fill="none" stroke="#a1a1a1" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <g>
+    <rect x="580" y="130" width="70" height="70" fill="#ededed" rx="4"/>
+    <rect x="670" y="130" width="70" height="70" fill="#3a3a3a" rx="4"/>
+    <rect x="760" y="130" width="70" height="70" fill="#737373" rx="4"/>
+    <rect x="580" y="220" width="70" height="70" fill="#737373" rx="4"/>
+    <rect x="670" y="220" width="70" height="70" fill="#ededed" rx="4"/>
+    <rect x="760" y="220" width="70" height="70" fill="#3a3a3a" rx="4"/>
+    <rect x="580" y="310" width="70" height="70" fill="#3a3a3a" rx="4"/>
+    <rect x="670" y="310" width="70" height="70" fill="#737373" rx="4"/>
+    <rect x="760" y="310" width="70" height="70" fill="#ededed" rx="4"/>
+  </g>
+  <text x="480" y="470" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="26" fill="#737373" text-anchor="middle">Transpose · 1 op · 0 bytes</text>
+</svg>
